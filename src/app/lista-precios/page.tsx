@@ -291,6 +291,13 @@ export default function ListaPreciosPage() {
                     {p.capacity}
                   </span>
                 )}
+              </div>
+
+              {/* Precio RD$ */}
+              <div className="w-full flex flex-shrink-0 items-center justify-end gap-1 text-right transition-transform duration-150 group-hover:scale-105 sm:w-auto">
+                <span className="text-[13px] sm:text-[14px] font-black text-slate-950 tabular-nums group-hover:text-sky-700 transition-colors whitespace-nowrap">
+                  {formatPrice(p.currentPrice?.priceTier1 || 0)}
+                </span>
                 <button
                   type="button"
                   onClick={(event) => {
@@ -300,17 +307,10 @@ export default function ListaPreciosPage() {
                   disabled={!p.currentPrice || p.stock <= 0 || !p.isActive}
                   title="Agregar 1 unidad al carrito"
                   aria-label={`Agregar ${p.model} al carrito`}
-                  className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center text-sky-600 transition hover:text-sky-800 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <ShoppingCart className="h-3.5 w-3.5" />
+                  <ShoppingCart className="h-4 w-4" />
                 </button>
-              </div>
-
-              {/* Precio RD$ */}
-              <div className="w-full flex flex-shrink-0 items-center justify-end gap-1 text-right transition-transform duration-150 group-hover:scale-105 sm:w-auto">
-                <span className="text-[13px] sm:text-[14px] font-black text-slate-950 tabular-nums group-hover:text-sky-700 transition-colors whitespace-nowrap">
-                  {formatPrice(p.currentPrice?.priceTier1 || 0)}
-                </span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-sky-600 transition-all duration-150 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 hidden sm:inline" />
               </div>
             </div>
