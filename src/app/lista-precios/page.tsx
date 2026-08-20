@@ -346,7 +346,7 @@ export default function ListaPreciosPage() {
             ))}
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-3.5 sm:gap-4 space-y-3.5 sm:space-y-4">
+          <div className="columns-3 gap-1.5 sm:gap-4 space-y-2 sm:space-y-4">
             {activeBrandList.map((brandName) => renderBrandCard(brandName))}
           </div>
         )}
