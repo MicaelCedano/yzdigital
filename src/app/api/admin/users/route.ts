@@ -24,6 +24,10 @@ export async function POST(request: Request) {
     const username = String(body.username || '').trim().toLowerCase();
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
+    const role = body.role === 'WHOLESALER' ? 'WHOLESALER' : 'ADMIN';
+    const companyName = String(body.companyName || '').trim() || null;
+    const phone = String(body.phone || '').trim() || null;
+    const city = String(body.city || '').trim() || null;
 
     if (!name || !username || !email || password.length < 8) {
       return NextResponse.json(
@@ -46,9 +50,15 @@ export async function POST(request: Request) {
         username,
         email,
         passwordHash: await hashPassword(password),
-        role: 'ADMIN',
+        role,
         status: 'APPROVED',
         isActive: true,
+        companyName,
+        phone,
+        city,
+        ...(role === 'WHOLESALER'
+          ? { priceListId: (await prisma.priceList.findFirst({ where: { isDefault: true } }))?.id }
+          : {}),
       },
       select: { id: true, name: true, username: true, email: true, role: true, status: true },
     });

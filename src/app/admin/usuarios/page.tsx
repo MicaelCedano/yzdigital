@@ -85,7 +85,7 @@ export default function AdminUsuariosPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
-  const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '' });
+  const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '' });
   const [adminSaving, setAdminSaving] = useState(false);
 
   const fetchUsers = useCallback(async (isSilent = false) => {
@@ -172,13 +172,13 @@ export default function AdminUsuariosPage() {
 
   const openCreateAdmin = () => {
     setEditingUser(null);
-    setAdminForm({ name: '', username: '', email: '', password: '' });
+    setAdminForm({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '' });
     setAdminModalOpen(true);
   };
 
   const openEditUser = (target: UserData) => {
     setEditingUser(target);
-    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '' });
+    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '', role: target.role, companyName: target.companyName || '', phone: target.phone || '', city: target.city || '' });
     setAdminModalOpen(true);
   };
 
@@ -200,7 +200,7 @@ export default function AdminUsuariosPage() {
         toastError('No se pudo guardar', data.error || 'Revisa los datos e intenta nuevamente.');
         return;
       }
-      success(editingUser ? 'Usuario actualizado' : 'Administrador creado', editingUser ? 'Los cambios fueron guardados.' : 'Ya puede iniciar sesión con su nueva cuenta.');
+      success(editingUser ? 'Usuario actualizado' : 'Usuario creado', editingUser ? 'Los cambios fueron guardados.' : 'Ya puede iniciar sesión con su nueva cuenta.');
       setAdminModalOpen(false);
       fetchUsers(true);
     } catch {
@@ -281,7 +281,7 @@ export default function AdminUsuariosPage() {
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-xs font-bold transition-all shadow-sm"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                <span>Crear administrador</span>
+                <span>Crear usuario</span>
               </button>
               <button
                 onClick={() => fetchUsers()}
@@ -736,10 +736,10 @@ export default function AdminUsuariosPage() {
             <div className="mb-5 pr-8">
               <div className="flex items-center gap-2 text-slate-900">
                 <Shield className="w-5 h-5 text-sky-600" />
-                <h2 className="text-lg font-black">{editingUser ? 'Editar usuario' : 'Crear administrador'}</h2>
+                <h2 className="text-lg font-black">{editingUser ? 'Editar usuario' : 'Crear usuario'}</h2>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                {editingUser ? 'Puedes cambiar nombre, correo o contraseña.' : 'Esta cuenta tendrá acceso completo al panel administrativo.'}
+                {editingUser ? 'Puedes cambiar sus datos o contraseña.' : 'Crea un administrador o un cliente mayorista aprobado.'}
               </p>
             </div>
             <form onSubmit={saveAdmin} className="space-y-3">
@@ -750,6 +750,16 @@ export default function AdminUsuariosPage() {
                 placeholder="Nombre completo"
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
+              {!editingUser && (
+                <select
+                  value={adminForm.role}
+                  onChange={(e) => setAdminForm({ ...adminForm, role: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                >
+                  <option value="WHOLESALER">Cliente mayorista</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              )}
               {!editingUser && (
                 <input
                   required
@@ -768,6 +778,26 @@ export default function AdminUsuariosPage() {
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
               <input
+                value={adminForm.companyName}
+                onChange={(e) => setAdminForm({ ...adminForm, companyName: e.target.value })}
+                placeholder="Nombre del negocio (opcional)"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  value={adminForm.phone}
+                  onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })}
+                  placeholder="WhatsApp"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+                <input
+                  value={adminForm.city}
+                  onChange={(e) => setAdminForm({ ...adminForm, city: e.target.value })}
+                  placeholder="Ciudad"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              </div>
+              <input
                 required={!editingUser}
                 minLength={8}
                 type="password"
@@ -782,7 +812,7 @@ export default function AdminUsuariosPage() {
                 className="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-black flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {adminSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {editingUser ? 'Guardar cambios' : 'Crear administrador'}
+                {editingUser ? 'Guardar cambios' : 'Crear usuario'}
               </button>
             </form>
           </div>
