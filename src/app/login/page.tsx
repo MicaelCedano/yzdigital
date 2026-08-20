@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 function LoginFormContent() {
   const [identifier, setIdentifier] = useState('');
@@ -888,12 +888,6 @@ function LoginFormContent() {
     }
   };
 
-  const fillCredentials = (user: string, pass: string) => {
-    setIdentifier(user);
-    setPassword(pass);
-    setErrorMessage('');
-  };
-
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegError('');
@@ -1046,30 +1040,6 @@ function LoginFormContent() {
           </button>
         </div>
 
-        {/* Acceso Rápido de Demostración */}
-        <div className="mt-4 pt-3 border-t border-white/10 text-center">
-          <p className="text-[10px] text-sky-200/80 uppercase font-bold tracking-wider mb-2">
-            Accesos Rápidos de Prueba
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => fillCredentials('admin', 'admin123')}
-              className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-[10px] font-bold text-amber-300 transition-colors flex items-center justify-center gap-1"
-            >
-              <ShieldCheck className="w-3 h-3 text-amber-400" />
-              <span>Admin</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => fillCredentials('mayorista', 'mayorista123')}
-              className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-[10px] font-bold text-sky-300 transition-colors flex items-center justify-center gap-1"
-            >
-              <UserCheck className="w-3 h-3 text-sky-400" />
-              <span>Mayorista</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Modal Solicitar Acceso Mayorista */}
