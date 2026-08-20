@@ -9,6 +9,8 @@ import { Modal } from '@/components/layout/Modal';
 import {
   Search,
   MessageCircle,
+  Minus,
+  Plus,
   ShoppingCart,
   ArrowUpRight,
   Palette,
@@ -70,6 +72,7 @@ export default function ListaPreciosPage() {
 
   // Modal para ver foto y detalles al hacer click en cualquier producto
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProductQuantity, setSelectedProductQuantity] = useState(1);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -105,6 +108,7 @@ export default function ListaPreciosPage() {
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
+    setSelectedProductQuantity(1);
     setPhotoModalOpen(true);
   };
 
@@ -532,15 +536,47 @@ export default function ListaPreciosPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => addItem(selectedProduct, 1)}
-                disabled={!selectedProduct.currentPrice}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Agregar este producto al carrito
-              </button>
+              <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <p className="mb-2 text-xs font-bold text-slate-600">Cantidad para este pedido</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProductQuantity((quantity) => Math.max(1, quantity - 1))}
+                      disabled={selectedProductQuantity <= 1}
+                      className="p-2.5 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
+                      aria-label="Reducir cantidad"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <input
+                      type="number"
+                      min={1}
+                      value={selectedProductQuantity}
+                      onChange={(event) => setSelectedProductQuantity(Math.max(1, Number(event.target.value) || 1))}
+                      className="w-14 bg-transparent text-center text-sm font-black text-slate-900 outline-none"
+                      aria-label="Cantidad del producto"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProductQuantity((quantity) => quantity + 1)}
+                      className="p-2.5 text-slate-500 hover:bg-slate-200"
+                      aria-label="Aumentar cantidad"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addItem(selectedProduct, selectedProductQuantity)}
+                    disabled={!selectedProduct.currentPrice}
+                    className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Agregar {selectedProductQuantity} al carrito
+                  </button>
+                </div>
+              </div>
 
               <div className="flex justify-end pt-1">
                 <button
