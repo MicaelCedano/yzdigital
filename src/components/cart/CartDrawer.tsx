@@ -37,6 +37,8 @@ export function CartDrawer() {
   const sendToWhatsApp = () => {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+    clearCart();
+    setOpen(false);
   };
 
   return (
