@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { CartProvider } from '@/context/CartContext';
 import { Navbar } from '@/components/layout/Navbar';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
 export const metadata: Metadata = {
   title: 'Catálogo de Precios Mayorista',
@@ -25,6 +26,7 @@ export default function RootLayout({
               <main className="w-full">
                 {children}
               </main>
+              <CartDrawer />
             </CartProvider>
           </AuthProvider>
         </ToastProvider>

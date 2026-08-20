@@ -29,11 +29,12 @@ export function getTierPrice(
   quantity: number,
   tiers: { tier1: number | null | undefined; tier2: number | null | undefined; tier3: number | null | undefined }
 ): { price: number; tierLabel: string } {
+  const listPrice = tiers.tier1 ?? 0;
   if (quantity >= 50) {
-    return { price: tiers.tier3 ?? tiers.tier2 ?? tiers.tier1 ?? 0, tierLabel: '50+ uds' };
+    return { price: Math.max(0, listPrice - 200), tierLabel: '50+ uds (-RD$200)' };
   }
   if (quantity >= 10) {
-    return { price: tiers.tier2 ?? tiers.tier1 ?? 0, tierLabel: '10-49 uds' };
+    return { price: Math.max(0, listPrice - 100), tierLabel: '10-49 uds (-RD$100)' };
   }
-  return { price: tiers.tier1 ?? 0, tierLabel: '1-9 uds' };
+  return { price: listPrice, tierLabel: '1-9 uds' };
 }

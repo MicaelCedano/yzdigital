@@ -156,7 +156,7 @@ export function ProductCard({ product }: ProductCardProps) {
             >
               <div className="text-[10px] uppercase font-bold text-slate-500">1 - 9 uds</div>
               <div className="font-extrabold text-xs text-slate-900 mt-0.5">
-                {formatCurrency(price.priceTier1, price.currency)}
+                {formatCurrency(getTierPrice(1, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
               </div>
             </div>
 
@@ -169,7 +169,7 @@ export function ProductCard({ product }: ProductCardProps) {
             >
               <div className="text-[10px] uppercase font-bold text-slate-500">10 - 49 uds</div>
               <div className="font-extrabold text-xs text-slate-900 mt-0.5">
-                {formatCurrency(price.priceTier2, price.currency)}
+                {formatCurrency(getTierPrice(10, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
               </div>
             </div>
 
@@ -182,7 +182,7 @@ export function ProductCard({ product }: ProductCardProps) {
             >
               <div className="text-[10px] uppercase font-bold text-emerald-700">50+ uds</div>
               <div className="font-extrabold text-xs text-emerald-800 mt-0.5">
-                {formatCurrency(price.priceTier3, price.currency)}
+                {formatCurrency(getTierPrice(50, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
               </div>
             </div>
           </div>

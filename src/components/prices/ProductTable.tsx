@@ -141,7 +141,7 @@ export function ProductTable({ products }: ProductTableProps) {
                         : 'text-slate-800'
                     }`}
                   >
-                    {formatCurrency(price.priceTier1, price.currency)}
+                    {formatCurrency(getTierPrice(1, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                   </td>
 
                   {/* Tier 2: 10-49 */}
@@ -152,7 +152,7 @@ export function ProductTable({ products }: ProductTableProps) {
                         : 'text-slate-800'
                     }`}
                   >
-                    {formatCurrency(price.priceTier2, price.currency)}
+                    {formatCurrency(getTierPrice(10, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                   </td>
 
                   {/* Tier 3: 50+ */}
@@ -163,7 +163,7 @@ export function ProductTable({ products }: ProductTableProps) {
                         : 'text-emerald-700'
                     }`}
                   >
-                    {formatCurrency(price.priceTier3, price.currency)}
+                    {formatCurrency(getTierPrice(50, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                   </td>
 
                   {/* Quick Quote Controls */}

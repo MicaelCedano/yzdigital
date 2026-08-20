@@ -194,7 +194,7 @@ export default function ProductDetailPage() {
                   >
                     <span className="text-[10px] uppercase font-bold block opacity-80">1 - 9 unidades</span>
                     <span className="text-sm font-black block mt-0.5">
-                      {formatCurrency(price.priceTier1, price.currency)}
+                      {formatCurrency(getTierPrice(1, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                     </span>
                   </div>
 
@@ -207,7 +207,7 @@ export default function ProductDetailPage() {
                   >
                     <span className="text-[10px] uppercase font-bold block opacity-80">10 - 49 unidades</span>
                     <span className="text-sm font-black block mt-0.5">
-                      {formatCurrency(price.priceTier2, price.currency)}
+                      {formatCurrency(getTierPrice(10, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                     </span>
                   </div>
 
@@ -220,7 +220,7 @@ export default function ProductDetailPage() {
                   >
                     <span className="text-[10px] uppercase font-bold block opacity-80">50+ unidades (VIP)</span>
                     <span className="text-sm font-black block mt-0.5">
-                      {formatCurrency(price.priceTier3, price.currency)}
+                      {formatCurrency(getTierPrice(50, { tier1: price.priceTier1, tier2: price.priceTier2, tier3: price.priceTier3 }).price, price.currency)}
                     </span>
                   </div>
                 </div>
