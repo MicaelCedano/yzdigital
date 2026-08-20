@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("WHOLESALER") // "ADMIN" | "WHOLESALER"
+  status       String    @default("APPROVED") // "PENDING" | "APPROVED" | "REJECTED"
+  companyName  String?
+  city         String?
+  taxId        String?
+  phone        String?
+  priceListId  String?
+  isActive           Boolean   @default(true)
+  lastLoginAt        DateTime?
+  lastActiveAt       DateTime?
+  loginCount         Int       @default(0)
+  lockedDevice       String?
+  lockedIp           String?
+  lastDeviceChangeAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  priceList      PriceList?      @relation(fields: [priceListId], references: [id])
+  quotes         Quote[]
+  auditLogs      PriceAuditLog[]
+  accessLogs     AccessLog[]
+  createdPrices  ProductPrice[]  @relation("CreatedPrices")
+  updatedPrices  ProductPrice[]  @relation("UpdatedPrices")
+}
+
+model AccessLog {
+  id        String   @id @default(cuid())
+  userId    String
+  username  String
+  name      String
+  role      String
+  action    String   @default("LOGIN") // "LOGIN" | "HEARTBEAT" | "LOGOUT"
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  headerColor String    @default("#0071BC")
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  brand        String   // Marca (BLU, MOTOROLA, SAMSUNG, etc.)
+  model        String   // Modelo (G06, A16, C5L PLUS, etc.)
+  capacity     String   @default("N/A") // RAM + GB (ej: 4+128GB)
+  imageUrl     String?  // Foto del producto
+  inActiveList Boolean  @default(true) // Si está en la lista activa que ve el cliente
+  sku          String   @unique
+  stock        Int      @default(20)
+  isActive     Boolean  @default(true)
+  categoryId   String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category    Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  prices      ProductPrice[]
+  quoteItems  QuoteItem[]
+  auditLogs   PriceAuditLog[]
+}
+
+model PriceList {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isDefault   Boolean   @default(false)
+  currency    String    @default("DOP")
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users   User[]
+  prices  ProductPrice[]
+}
+
+model ProductPrice {
+  id          String    @id @default(cuid())
+  productId   String
+  priceListId String
+  currency    String    @default("DOP")
+  priceTier1  Float     @default(0) // Precio del producto
+  priceTier2  Float?    @default(0)
+  priceTier3  Float?    @default(0)
+  validFrom   DateTime  @default(now())
+  validUntil  DateTime?
+  isActive    Boolean   @default(true)
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceList PriceList  @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  createdBy User?      @relation("CreatedPrices", fields: [createdById], references: [id])
+  updatedBy User?      @relation("UpdatedPrices", fields: [updatedById], references: [id])
+  auditLogs PriceAuditLog[]
+
+  @@unique([productId, priceListId])
+}
+
+model PriceAuditLog {
+  id             String        @id @default(cuid())
+  productId      String
+  productPriceId String?
+  userId         String?
+  action         String
+  oldData        String?
+  newData        String?
+  reason         String?
+  createdAt      DateTime      @default(now())
+
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productPrice ProductPrice? @relation(fields: [productPriceId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Quote {
+  id            String      @id @default(cuid())
+  quoteNumber   String      @unique
+  userId        String
+  customerName  String
+  customerEmail String
+  companyName   String?
+  phone         String?
+  notes         String?
+  currency      String      @default("DOP")
+  totalAmount   Float       @default(0)
+  totalUnits    Int         @default(0)
+  status        String      @default("PENDING")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items QuoteItem[]
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  productId   String
+  productName String
+  brand       String
+  model       String
+  capacity    String
+  color       String?
+  quantity    Int
+  unitPrice   Float
+  subtotal    Float
+  tierApplied String
+  createdAt   DateTime @default(now())
+
+  quote   Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}

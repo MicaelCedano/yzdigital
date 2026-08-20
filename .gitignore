@@ -1,0 +1,30 @@
+# Dependencias y compilaciones
+node_modules/
+.next/
+out/
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Bases de datos locales de Prisma/SQLite
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+
+# Logs y archivos del sistema
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Cobertura y cachés
+coverage/
+.turbo/
+.vercel/
+*.tsbuildinfo
