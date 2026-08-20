@@ -17,6 +17,7 @@ model User {
   status       String    @default("APPROVED") // "PENDING" | "APPROVED" | "REJECTED"
   companyName  String?
   city         String?
+  shippingAddress String?
   taxId        String?
   phone        String?
   priceListId  String?

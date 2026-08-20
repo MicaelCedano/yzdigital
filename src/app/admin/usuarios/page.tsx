@@ -37,6 +37,7 @@ interface UserData {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   companyName: string | null;
   city: string | null;
+  shippingAddress: string | null;
   phone: string | null;
   isActive: boolean;
   isOnline: boolean;
@@ -85,7 +86,7 @@ export default function AdminUsuariosPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
-  const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '' });
+  const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '', shippingAddress: '' });
   const [adminSaving, setAdminSaving] = useState(false);
 
   const fetchUsers = useCallback(async (isSilent = false) => {
@@ -172,13 +173,13 @@ export default function AdminUsuariosPage() {
 
   const openCreateAdmin = () => {
     setEditingUser(null);
-    setAdminForm({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '' });
+    setAdminForm({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '', shippingAddress: '' });
     setAdminModalOpen(true);
   };
 
   const openEditUser = (target: UserData) => {
     setEditingUser(target);
-    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '', role: target.role, companyName: target.companyName || '', phone: target.phone || '', city: target.city || '' });
+    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '', role: target.role, companyName: target.companyName || '', phone: target.phone || '', city: target.city || '', shippingAddress: target.shippingAddress || '' });
     setAdminModalOpen(true);
   };
 
@@ -188,7 +189,7 @@ export default function AdminUsuariosPage() {
     try {
       const url = editingUser ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
       const body = editingUser
-        ? { name: adminForm.name, email: adminForm.email, ...(adminForm.password ? { password: adminForm.password } : {}) }
+        ? { name: adminForm.name, email: adminForm.email, shippingAddress: adminForm.shippingAddress, ...(adminForm.password ? { password: adminForm.password } : {}) }
         : adminForm;
       const res = await fetch(url, {
         method: editingUser ? 'PATCH' : 'POST',
@@ -797,6 +798,13 @@ export default function AdminUsuariosPage() {
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
               </div>
+              <textarea
+                value={adminForm.shippingAddress}
+                onChange={(e) => setAdminForm({ ...adminForm, shippingAddress: e.target.value })}
+                placeholder="Dirección de envío"
+                rows={2}
+                className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
               <input
                 required={!editingUser}
                 minLength={8}

@@ -12,9 +12,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     const body = await request.json();
-    const data: { name?: string; email?: string; passwordHash?: string } = {};
+    const data: { name?: string; email?: string; shippingAddress?: string | null; passwordHash?: string } = {};
     if (typeof body.name === 'string' && body.name.trim()) data.name = body.name.trim();
     if (typeof body.email === 'string' && body.email.trim()) data.email = body.email.trim().toLowerCase();
+    if (typeof body.shippingAddress === 'string') data.shippingAddress = body.shippingAddress.trim() || null;
     if (typeof body.password === 'string' && body.password.length > 0) {
       if (body.password.length < 8) {
         return NextResponse.json({ error: 'La contraseña debe tener mínimo 8 caracteres.' }, { status: 400 });

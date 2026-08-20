@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const companyName = String(body.companyName || '').trim() || null;
     const phone = String(body.phone || '').trim() || null;
     const city = String(body.city || '').trim() || null;
+    const shippingAddress = String(body.shippingAddress || '').trim() || null;
 
     if (!name || !username || !email || password.length < 8) {
       return NextResponse.json(
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
         companyName,
         phone,
         city,
+        shippingAddress,
         ...(role === 'WHOLESALER'
           ? { priceListId: (await prisma.priceList.findFirst({ where: { isDefault: true } }))?.id }
           : {}),
@@ -96,6 +98,7 @@ export async function GET(request: Request) {
         status: true,
         companyName: true,
         city: true,
+        shippingAddress: true,
         phone: true,
         isActive: true,
         lastLoginAt: true,
