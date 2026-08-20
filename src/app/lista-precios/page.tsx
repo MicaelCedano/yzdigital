@@ -628,7 +628,10 @@ export default function ListaPreciosPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => addItem(selectedProduct, quantityForPricing)}
+                    onClick={() => {
+                      addItem(selectedProduct, quantityForPricing);
+                      setPhotoModalOpen(false);
+                    }}
                     disabled={!selectedProduct.currentPrice || selectedProductQuantity === ''}
                     className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
