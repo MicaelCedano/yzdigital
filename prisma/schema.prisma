@@ -70,6 +70,8 @@ model Product {
   brand        String   // Marca (BLU, MOTOROLA, SAMSUNG, etc.)
   model        String   // Modelo (G06, A16, C5L PLUS, etc.)
   capacity     String   @default("N/A") // RAM + GB (ej: 4+128GB)
+  color        String?
+  description  String?
   imageUrl     String?  // Foto del producto
   inActiveList Boolean  @default(true) // Si está en la lista activa que ve el cliente
   sku          String   @unique

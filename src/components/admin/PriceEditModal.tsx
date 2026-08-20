@@ -42,8 +42,8 @@ export function PriceEditModal({
     if (existingPrice) {
       setFormData({
         priceTier1: existingPrice.priceTier1,
-        priceTier2: existingPrice.priceTier2,
-        priceTier3: existingPrice.priceTier3,
+        priceTier2: existingPrice.priceTier2 ?? 0,
+        priceTier3: existingPrice.priceTier3 ?? 0,
         currency: existingPrice.currency || 'USD',
         validFrom: existingPrice.validFrom ? existingPrice.validFrom.split('T')[0] : '',
         validUntil: existingPrice.validUntil ? existingPrice.validUntil.split('T')[0] : '',

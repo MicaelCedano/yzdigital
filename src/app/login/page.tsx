@@ -39,8 +39,9 @@ function LoginFormContent() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
     if (!ctx) return;
+    const drawingContext = ctx;
 
     let animId: number;
     let width = (canvas.width = window.innerWidth);
@@ -782,6 +783,7 @@ function LoginFormContent() {
     }
 
     function drawMainPlatform(plat: any) {
+      const ctx = drawingContext;
       ctx.save();
       ctx.fillStyle = '#1e293b';
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
@@ -815,6 +817,7 @@ function LoginFormContent() {
     }
 
     function drawSubPlatform(plat: any) {
+      const ctx = drawingContext;
       ctx.save();
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.strokeStyle = '#38bdf8';
@@ -835,19 +838,19 @@ function LoginFormContent() {
     }
 
     function gameLoop() {
-      drawSmashStage(ctx);
+      drawSmashStage(drawingContext);
 
       fighters.sort((a, b) => a.y - b.y);
 
       for (let fighter of fighters) {
         fighter.update(fighters);
-        fighter.draw(ctx);
+        fighter.draw(drawingContext);
       }
 
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.update();
-        p.draw(ctx);
+        p.draw(drawingContext);
         if (p.alpha <= 0) particles.splice(i, 1);
       }
 

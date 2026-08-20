@@ -50,6 +50,8 @@ export interface Product {
   brand: string;      // Marca
   model: string;      // Modelo
   capacity: string;   // RAM + GB (ej: 4+128GB)
+  color?: string | null;
+  description?: string | null;
   imageUrl?: string | null; // Foto
   inActiveList: boolean; // Si está en la lista activa visible para clientes
   sku: string;
@@ -62,6 +64,21 @@ export interface Product {
   currentPrice?: ProductPrice;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+  unitPrice: number;
+  tierLabel: string;
+  currency: string;
+}
+
+export interface DashboardMetrics {
+  totalProductsAvailable: number;
+  totalPriceUpdatesRecent: number;
+  totalOutOfStock: number;
+  totalPendingQuotes: number;
 }
 
 export interface PriceList {
