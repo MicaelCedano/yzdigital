@@ -529,21 +529,6 @@ export default function ListaPreciosPage() {
                 </div>
               </div>
 
-              {/* Botón WhatsApp */}
-              <a
-                href={`https://wa.me/18294636244?text=${encodeURIComponent(
-                  `Hola, deseo consultar disponibilidad del modelo ${selectedProduct.brand} ${selectedProduct.model} (${selectedProduct.capacity}) por ${formatPrice(
-                    selectedProduct.currentPrice?.priceTier1 || 0
-                  )}`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/25"
-              >
-                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Pedir este modelo por WhatsApp</span>
-              </a>
-
               <div className="flex justify-end pt-1">
                 <button
                   onClick={() => setPhotoModalOpen(false)}
