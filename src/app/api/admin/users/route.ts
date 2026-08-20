@@ -1,9 +1,64 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { verifySessionToken, COOKIE_NAME } from '@/lib/auth';
+import { hashPassword, verifySessionToken, COOKIE_NAME } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
+
+async function getAdminSession() {
+  const token = cookies().get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  const session = await verifySessionToken(token);
+  return session?.role === 'ADMIN' ? session : null;
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await getAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Acceso exclusivo para administradores' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const name = String(body.name || '').trim();
+    const username = String(body.username || '').trim().toLowerCase();
+    const email = String(body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+
+    if (!name || !username || !email || password.length < 8) {
+      return NextResponse.json(
+        { error: 'Nombre, usuario, correo y una contraseña de mínimo 8 caracteres son obligatorios.' },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ username }, { email }] },
+      select: { id: true },
+    });
+    if (existing) {
+      return NextResponse.json({ error: 'El usuario o correo ya está registrado.' }, { status: 409 });
+    }
+
+    const created = await prisma.user.create({
+      data: {
+        name,
+        username,
+        email,
+        passwordHash: await hashPassword(password),
+        role: 'ADMIN',
+        status: 'APPROVED',
+        isActive: true,
+      },
+      select: { id: true, name: true, username: true, email: true, role: true, status: true },
+    });
+
+    return NextResponse.json({ success: true, user: created }, { status: 201 });
+  } catch (error) {
+    console.error('Error al crear administrador:', error);
+    return NextResponse.json({ error: 'No se pudo crear el administrador.' }, { status: 500 });
+  }
+}
 
 export async function GET(request: Request) {
   try {

@@ -23,6 +23,9 @@ import {
   Smartphone,
   Lock,
   Unlock,
+  UserPlus,
+  X,
+  Save,
 } from 'lucide-react';
 
 interface UserData {
@@ -80,6 +83,10 @@ export default function AdminUsuariosPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'online' | 'all' | 'logs'>('pending');
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '' });
+  const [adminSaving, setAdminSaving] = useState(false);
 
   const fetchUsers = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
@@ -163,6 +170,46 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const openCreateAdmin = () => {
+    setEditingUser(null);
+    setAdminForm({ name: '', username: '', email: '', password: '' });
+    setAdminModalOpen(true);
+  };
+
+  const openEditUser = (target: UserData) => {
+    setEditingUser(target);
+    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '' });
+    setAdminModalOpen(true);
+  };
+
+  const saveAdmin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAdminSaving(true);
+    try {
+      const url = editingUser ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
+      const body = editingUser
+        ? { name: adminForm.name, email: adminForm.email, ...(adminForm.password ? { password: adminForm.password } : {}) }
+        : adminForm;
+      const res = await fetch(url, {
+        method: editingUser ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toastError('No se pudo guardar', data.error || 'Revisa los datos e intenta nuevamente.');
+        return;
+      }
+      success(editingUser ? 'Usuario actualizado' : 'Administrador creado', editingUser ? 'Los cambios fueron guardados.' : 'Ya puede iniciar sesión con su nueva cuenta.');
+      setAdminModalOpen(false);
+      fetchUsers(true);
+    } catch {
+      toastError('Error de red', 'Intenta nuevamente.');
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
   // Filtrado de usuarios según búsqueda y pestaña activa
   const filteredUsers = users.filter((u) => {
     const term = search.toLowerCase().trim();
@@ -229,6 +276,13 @@ export default function AdminUsuariosPage() {
 
             {/* Botón Refrescar */}
             <div className="flex items-center gap-2 self-start md:self-auto">
+              <button
+                onClick={openCreateAdmin}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-700 text-white text-xs font-bold transition-all shadow-sm"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Crear administrador</span>
+              </button>
               <button
                 onClick={() => fetchUsers()}
                 disabled={refreshing}
@@ -559,7 +613,14 @@ export default function AdminUsuariosPage() {
 
                         {isApproved && (
                           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => openEditUser(u)}
+                                disabled={updatingId === u.id}
+                                className="py-1.5 px-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-[11px] font-bold transition-all"
+                              >
+                                Editar
+                              </button>
                               <button
                                 onClick={() => handleUpdateStatus(u.id, 'REJECTED', u.name)}
                                 disabled={updatingId === u.id}
@@ -660,6 +721,73 @@ export default function AdminUsuariosPage() {
           </div>
         )}
       </div>
+
+      {adminModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6">
+            <button
+              type="button"
+              onClick={() => setAdminModalOpen(false)}
+              className="absolute right-4 top-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center"
+              aria-label="Cerrar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="mb-5 pr-8">
+              <div className="flex items-center gap-2 text-slate-900">
+                <Shield className="w-5 h-5 text-sky-600" />
+                <h2 className="text-lg font-black">{editingUser ? 'Editar usuario' : 'Crear administrador'}</h2>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                {editingUser ? 'Puedes cambiar nombre, correo o contraseña.' : 'Esta cuenta tendrá acceso completo al panel administrativo.'}
+              </p>
+            </div>
+            <form onSubmit={saveAdmin} className="space-y-3">
+              <input
+                required
+                value={adminForm.name}
+                onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
+                placeholder="Nombre completo"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              {!editingUser && (
+                <input
+                  required
+                  value={adminForm.username}
+                  onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value })}
+                  placeholder="Usuario de acceso"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
+              )}
+              <input
+                required
+                type="email"
+                value={adminForm.email}
+                onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                placeholder="Correo electrónico"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <input
+                required={!editingUser}
+                minLength={8}
+                type="password"
+                value={adminForm.password}
+                onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                placeholder={editingUser ? 'Nueva contraseña (opcional)' : 'Contraseña (mínimo 8 caracteres)'}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <button
+                type="submit"
+                disabled={adminSaving}
+                className="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-black flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {adminSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editingUser ? 'Guardar cambios' : 'Crear administrador'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
