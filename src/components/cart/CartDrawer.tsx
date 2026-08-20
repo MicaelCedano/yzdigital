@@ -12,6 +12,13 @@ export function CartDrawer() {
   const pathname = usePathname();
   const { items, totalUnits, totalAmount, currency, updateQuantity, removeItem, clearCart } = useCart();
   const [open, setOpen] = useState(false);
+  const [draftQuantities, setDraftQuantities] = useState<Record<string, string>>({});
+
+  const changeQuantity = (productId: string, quantity: number) => {
+    const nextQuantity = Math.max(1, quantity);
+    setDraftQuantities((current) => ({ ...current, [productId]: String(nextQuantity) }));
+    updateQuantity(productId, nextQuantity);
+  };
 
   const whatsappMessage = useMemo(() => {
     const lines = items.map((item) => {
@@ -88,7 +95,14 @@ export function CartDrawer() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeItem(item.product.id)}
+                      onClick={() => {
+                        setDraftQuantities((current) => {
+                          const next = { ...current };
+                          delete next[item.product.id];
+                          return next;
+                        });
+                        removeItem(item.product.id);
+                      }}
                       className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
                       aria-label={`Eliminar ${item.product.model}`}
                     >
@@ -98,11 +112,29 @@ export function CartDrawer() {
 
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white">
-                      <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="p-2 text-slate-500 hover:bg-slate-100" aria-label="Reducir cantidad">
+                      <button type="button" onClick={() => changeQuantity(item.product.id, item.quantity - 1)} className="p-2 text-slate-500 hover:bg-slate-100" aria-label="Reducir cantidad">
                         <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="w-9 text-center text-xs font-black text-slate-900">{item.quantity}</span>
-                      <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="p-2 text-slate-500 hover:bg-slate-100" aria-label="Aumentar cantidad">
+                      <input
+                        type="number"
+                        min={1}
+                        value={draftQuantities[item.product.id] ?? String(item.quantity)}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setDraftQuantities((current) => ({ ...current, [item.product.id]: value }));
+                          if (value !== '' && Number(value) >= 1) {
+                            updateQuantity(item.product.id, Number(value));
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!draftQuantities[item.product.id]) {
+                            changeQuantity(item.product.id, item.quantity);
+                          }
+                        }}
+                        className="w-12 bg-transparent text-center text-xs font-black text-slate-900 outline-none"
+                        aria-label={`Cantidad de ${item.product.model}`}
+                      />
+                      <button type="button" onClick={() => changeQuantity(item.product.id, item.quantity + 1)} className="p-2 text-slate-500 hover:bg-slate-100" aria-label="Aumentar cantidad">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
                     </div>
