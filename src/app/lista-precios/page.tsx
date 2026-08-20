@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { Category, Product } from '@/types';
 import { Modal } from '@/components/layout/Modal';
+import { getTierPrice } from '@/lib/utils';
 import {
   Search,
   MessageCircle,
@@ -222,6 +223,31 @@ export default function ListaPreciosPage() {
     if (!val || val === 0) return 'Consultar';
     return `RD$ ${val.toLocaleString('en-US')}`;
   };
+
+  const selectedProductTiers = selectedProduct?.currentPrice
+    ? {
+        current: getTierPrice(selectedProductQuantity, {
+          tier1: selectedProduct.currentPrice.priceTier1,
+          tier2: selectedProduct.currentPrice.priceTier2,
+          tier3: selectedProduct.currentPrice.priceTier3,
+        }),
+        standard: getTierPrice(1, {
+          tier1: selectedProduct.currentPrice.priceTier1,
+          tier2: selectedProduct.currentPrice.priceTier2,
+          tier3: selectedProduct.currentPrice.priceTier3,
+        }),
+        volume10: getTierPrice(10, {
+          tier1: selectedProduct.currentPrice.priceTier1,
+          tier2: selectedProduct.currentPrice.priceTier2,
+          tier3: selectedProduct.currentPrice.priceTier3,
+        }),
+        volume50: getTierPrice(50, {
+          tier1: selectedProduct.currentPrice.priceTier1,
+          tier2: selectedProduct.currentPrice.priceTier2,
+          tier3: selectedProduct.currentPrice.priceTier3,
+        }),
+      }
+    : null;
 
   const renderBrandCard = (brandName: string) => {
     const prods = brandGroups.get(brandName.toUpperCase()) || [];
@@ -538,6 +564,23 @@ export default function ListaPreciosPage() {
 
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <p className="mb-2 text-xs font-bold text-slate-600">Cantidad para este pedido</p>
+                <div className="mb-3 grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity < 10 ? 'border-blue-300 bg-blue-50 text-blue-800' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                    <span className="block font-bold">1–9 unidades</span>
+                    <span className="block font-black">{formatPrice(selectedProductTiers?.standard.price || 0)}</span>
+                  </div>
+                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity >= 10 && selectedProductQuantity < 50 ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                    <span className="block font-bold">10–49 unidades</span>
+                    <span className="block font-black">{formatPrice(selectedProductTiers?.volume10.price || 0)}</span>
+                  </div>
+                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity >= 50 ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                    <span className="block font-bold">50+ unidades</span>
+                    <span className="block font-black">{formatPrice(selectedProductTiers?.volume50.price || 0)}</span>
+                  </div>
+                </div>
+                <p className="mb-2 text-[11px] font-bold text-slate-500">
+                  Precio aplicado: <span className="text-slate-900">{formatPrice(selectedProductTiers?.current.price || 0)} por unidad</span>
+                </p>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                     <button
