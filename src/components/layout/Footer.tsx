@@ -45,13 +45,13 @@ export function Footer() {
             <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Mesa de Ayuda Mayorista</h4>
             <div className="space-y-1.5 text-slate-500">
               <a
-                href="https://wa.me/18294636244"
+                href="https://wa.me/18297726060"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 hover:text-blue-600 transition-colors"
               >
                 <Phone className="w-3.5 h-3.5 text-blue-600" />
-                <span>+1 (829) 463-6244 (WhatsApp)</span>
+                <span>+1 (829) 772-6060 (WhatsApp)</span>
               </a>
               <p className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-blue-600" />

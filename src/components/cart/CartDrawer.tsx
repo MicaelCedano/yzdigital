@@ -6,7 +6,7 @@ import { MessageCircle, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-reac
 import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 
-const WHATSAPP_NUMBER = '18294636244';
+const WHATSAPP_NUMBER = '18297726060';
 
 export function CartDrawer() {
   const pathname = usePathname();

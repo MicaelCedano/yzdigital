@@ -314,13 +314,13 @@ export default function ListaPreciosPage() {
 
             {/* Contacto WhatsApp */}
             <a
-              href="https://wa.me/18294636244"
+              href="https://wa.me/18297726060"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors self-start sm:self-auto flex-shrink-0"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>WhatsApp: +1 (829) 463-6244</span>
+              <span>WhatsApp: +1 (829) 772-6060</span>
             </a>
           </div>
 

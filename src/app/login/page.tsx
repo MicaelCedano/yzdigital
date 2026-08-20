@@ -998,7 +998,7 @@ function LoginFormContent() {
               <span>Recordarme</span>
             </label>
             <a
-              href="https://wa.me/18294636244?text=Hola,%20olvidé%20mi%20contraseña%20de%20acceso%20a%20YZ%20Digital"
+              href="https://wa.me/18297726060?text=Hola,%20olvidé%20mi%20contraseña%20de%20acceso%20a%20YZ%20Digital"
               target="_blank"
               rel="noreferrer"
               className="text-sky-300 hover:text-white hover:underline transition-colors font-semibold"
@@ -1076,7 +1076,7 @@ function LoginFormContent() {
                 </div>
 
                 <a
-                  href={`https://wa.me/18294636244?text=${encodeURIComponent(
+                  href={`https://wa.me/18297726060?text=${encodeURIComponent(
                     `Hola YZ DIGITAL, acabo de solicitar acceso mayorista para mi negocio "${regForm.companyName || regForm.name}" con el usuario "${regForm.username}". Por favor activar mi cuenta.`
                   )}`}
                   target="_blank"
@@ -1150,7 +1150,7 @@ function LoginFormContent() {
                         required
                         value={regForm.phone}
                         onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                        placeholder="Ej: 829-463-6244"
+                  placeholder="Ej: 829-772-6060"
                         className="w-full px-3.5 py-2.5 bg-slate-800 border border-white/15 rounded-xl text-white text-xs outline-none focus:border-[#38bdf8] focus:ring-2 focus:ring-sky-400/30 transition-all placeholder:text-slate-500"
                       />
                     </div>
