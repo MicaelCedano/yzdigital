@@ -73,7 +73,7 @@ export default function ListaPreciosPage() {
 
   // Modal para ver foto y detalles al hacer click en cualquier producto
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedProductQuantity, setSelectedProductQuantity] = useState(1);
+  const [selectedProductQuantity, setSelectedProductQuantity] = useState<number | ''>(1);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -224,9 +224,10 @@ export default function ListaPreciosPage() {
     return `RD$ ${val.toLocaleString('en-US')}`;
   };
 
+  const quantityForPricing = typeof selectedProductQuantity === 'number' ? selectedProductQuantity : 1;
   const selectedProductTiers = selectedProduct?.currentPrice
     ? {
-        current: getTierPrice(selectedProductQuantity, {
+        current: getTierPrice(quantityForPricing, {
           tier1: selectedProduct.currentPrice.priceTier1,
           tier2: selectedProduct.currentPrice.priceTier2,
           tier3: selectedProduct.currentPrice.priceTier3,
@@ -565,15 +566,15 @@ export default function ListaPreciosPage() {
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <p className="mb-2 text-xs font-bold text-slate-600">Cantidad para este pedido</p>
                 <div className="mb-3 grid grid-cols-3 gap-1.5 text-center text-[10px]">
-                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity < 10 ? 'border-blue-300 bg-blue-50 text-blue-800' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                  <div className={`rounded-lg border p-1.5 ${quantityForPricing < 10 ? 'border-blue-300 bg-blue-50 text-blue-800' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
                     <span className="block font-bold">1–9 unidades</span>
                     <span className="block font-black">{formatPrice(selectedProductTiers?.standard.price || 0)}</span>
                   </div>
-                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity >= 10 && selectedProductQuantity < 50 ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                  <div className={`rounded-lg border p-1.5 ${quantityForPricing >= 10 && quantityForPricing < 50 ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
                     <span className="block font-bold">10–49 unidades</span>
                     <span className="block font-black">{formatPrice(selectedProductTiers?.volume10.price || 0)}</span>
                   </div>
-                  <div className={`rounded-lg border p-1.5 ${selectedProductQuantity >= 50 ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                  <div className={`rounded-lg border p-1.5 ${quantityForPricing >= 50 ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
                     <span className="block font-bold">50+ unidades</span>
                     <span className="block font-black">{formatPrice(selectedProductTiers?.volume50.price || 0)}</span>
                   </div>
@@ -585,8 +586,8 @@ export default function ListaPreciosPage() {
                   <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                     <button
                       type="button"
-                      onClick={() => setSelectedProductQuantity((quantity) => Math.max(1, quantity - 1))}
-                      disabled={selectedProductQuantity <= 1}
+                      onClick={() => setSelectedProductQuantity((quantity) => typeof quantity === 'number' ? Math.max(1, quantity - 1) : 1)}
+                      disabled={selectedProductQuantity === '' || selectedProductQuantity <= 1}
                       className="p-2.5 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
                       aria-label="Reducir cantidad"
                     >
@@ -596,13 +597,16 @@ export default function ListaPreciosPage() {
                       type="number"
                       min={1}
                       value={selectedProductQuantity}
-                      onChange={(event) => setSelectedProductQuantity(Math.max(1, Number(event.target.value) || 1))}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setSelectedProductQuantity(value === '' ? '' : Math.max(1, Number(value) || 1));
+                      }}
                       className="w-14 bg-transparent text-center text-sm font-black text-slate-900 outline-none"
                       aria-label="Cantidad del producto"
                     />
                     <button
                       type="button"
-                      onClick={() => setSelectedProductQuantity((quantity) => quantity + 1)}
+                      onClick={() => setSelectedProductQuantity((quantity) => typeof quantity === 'number' ? quantity + 1 : 1)}
                       className="p-2.5 text-slate-500 hover:bg-slate-200"
                       aria-label="Aumentar cantidad"
                     >
@@ -611,12 +615,12 @@ export default function ListaPreciosPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => addItem(selectedProduct, selectedProductQuantity)}
-                    disabled={!selectedProduct.currentPrice}
+                    onClick={() => addItem(selectedProduct, quantityForPricing)}
+                    disabled={!selectedProduct.currentPrice || selectedProductQuantity === ''}
                     className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <ShoppingCart className="h-4 w-4" />
-                    Agregar {selectedProductQuantity} al carrito
+                    Agregar {selectedProductQuantity || 'cantidad'} al carrito
                   </button>
                 </div>
               </div>
