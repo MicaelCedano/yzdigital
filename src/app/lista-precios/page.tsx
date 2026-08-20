@@ -291,6 +291,19 @@ export default function ListaPreciosPage() {
                     {p.capacity}
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    addItem(p, 1);
+                  }}
+                  disabled={!p.currentPrice || p.stock <= 0 || !p.isActive}
+                  title="Agregar 1 unidad al carrito"
+                  aria-label={`Agregar ${p.model} al carrito`}
+                  className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-blue-600 text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               {/* Precio RD$ */}
