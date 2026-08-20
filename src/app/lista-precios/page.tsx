@@ -3,11 +3,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { Category, Product } from '@/types';
 import { Modal } from '@/components/layout/Modal';
 import {
   Search,
   MessageCircle,
+  ShoppingCart,
   ArrowUpRight,
   Palette,
   Check,
@@ -52,6 +54,7 @@ const PRESET_SWATCHES = [
 
 export default function ListaPreciosPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const { addItem } = useCart();
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -528,6 +531,16 @@ export default function ListaPreciosPage() {
                   <span>En Almacén Central • Despacho Rápido</span>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => addItem(selectedProduct, 1)}
+                disabled={!selectedProduct.currentPrice}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Agregar este producto al carrito
+              </button>
 
               <div className="flex justify-end pt-1">
                 <button
