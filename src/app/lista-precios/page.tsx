@@ -243,12 +243,12 @@ export default function ListaPreciosPage() {
             <div
               key={p.id}
               onClick={() => handleProductClick(p)}
-              className={`flex items-center justify-between px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs cursor-pointer transition-all duration-150 ease-out hover:bg-sky-50/90 hover:translate-x-1 group select-none ${
+              className={`flex flex-col items-stretch justify-between gap-0.5 px-1.5 py-1.5 sm:flex-row sm:items-center sm:gap-0 sm:px-3 sm:py-2 text-xs cursor-pointer transition-all duration-150 ease-out hover:bg-sky-50/90 hover:translate-x-1 group select-none ${
                 idx % 2 === 1 ? 'bg-[#FAFAFA]' : 'bg-white'
               }`}
             >
-              {/* Modelo y Capacidad en la misma línea */}
-              <div className="min-w-0 flex-1 pr-2 flex items-center gap-1.5 transition-transform duration-150 group-hover:translate-x-0.5">
+              {/* Modelo y capacidad; en móvil ocupan su propia línea */}
+              <div className="w-full min-w-0 flex items-center gap-1 transition-transform duration-150 group-hover:translate-x-0.5 sm:flex-1 sm:gap-1.5 sm:pr-2">
                 <span className="text-[12.5px] sm:text-[13.5px] font-black text-slate-900 group-hover:text-sky-700 transition-colors tracking-tight truncate">
                   {p.model}
                 </span>
@@ -260,7 +260,7 @@ export default function ListaPreciosPage() {
               </div>
 
               {/* Precio RD$ */}
-              <div className="text-right flex-shrink-0 flex items-center gap-1 transition-transform duration-150 group-hover:scale-105">
+              <div className="w-full flex flex-shrink-0 items-center justify-end gap-1 text-right transition-transform duration-150 group-hover:scale-105 sm:w-auto">
                 <span className="text-[13px] sm:text-[14px] font-black text-slate-950 tabular-nums group-hover:text-sky-700 transition-colors whitespace-nowrap">
                   {formatPrice(p.currentPrice?.priceTier1 || 0)}
                 </span>
