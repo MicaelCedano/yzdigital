@@ -24,7 +24,7 @@ export function CartDrawer() {
     const lines = items.map((item) => {
       const name = `${item.product.brand} ${item.product.model} (${item.product.capacity})`;
       const subtotal = item.unitPrice * item.quantity;
-      return `• ${name}\n  ${item.quantity} x ${formatCurrency(item.unitPrice, item.currency)} = ${formatCurrency(subtotal, item.currency)} [${item.tierLabel}]`;
+      return `• ${name}\n  ${item.quantity} unidades x ${formatCurrency(item.unitPrice, item.currency)} — Total ${formatCurrency(subtotal, item.currency)}`;
     });
 
     return [
