@@ -21,9 +21,10 @@ export function CartDrawer() {
   };
 
   const whatsappMessage = useMemo(() => {
-    const lines = items.map((item) => {
+    const lines = items.flatMap((item, index) => {
       const name = `${item.product.brand} ${item.product.model} (${item.product.capacity})`;
-      return `• ${name}\n  ${item.quantity} unidades x ${formatCurrency(item.unitPrice, item.currency)}`;
+      const line = `• ${name}\n  ${item.quantity} unidades x ${formatCurrency(item.unitPrice, item.currency)}`;
+      return index === 0 ? [line] : ['────────────────────', line];
     });
 
     return [
