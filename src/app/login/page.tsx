@@ -1228,10 +1228,6 @@ function LoginFormContent() {
         </div>
       )}
 
-      {/* Identidad inferior de la escena */}
-      <div className="absolute bottom-3 left-4 z-10 text-white/85 text-[10px] sm:text-[11px] font-black tracking-widest uppercase pointer-events-none drop-shadow-md">
-        💥 CELULARES EN ACCIÓN — YZ DIGITAL
-      </div>
     </div>
   );
 }
