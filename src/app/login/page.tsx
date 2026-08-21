@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Loader2 } from 'lucide-react';
@@ -30,8 +30,14 @@ function LoginFormContent() {
   const { login } = useAuth();
   const { success } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/lista-precios';
+  const [callbackUrl, setCallbackUrl] = useState('/lista-precios');
+
+  useEffect(() => {
+    const requestedCallbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
+    if (requestedCallbackUrl?.startsWith('/') && !requestedCallbackUrl.startsWith('//')) {
+      setCallbackUrl(requestedCallbackUrl);
+    }
+  }, []);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -1231,15 +1237,5 @@ function LoginFormContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#0284c7] text-white">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
-      }
-    >
-      <LoginFormContent />
-    </Suspense>
-  );
+  return <LoginFormContent />;
 }
