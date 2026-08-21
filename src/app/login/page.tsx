@@ -916,92 +916,93 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden select-none">
-      {/* Escena animada de celulares */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full z-0 block cursor-default"
-      />
+      <div className="login-tech-scene relative w-screen h-screen overflow-hidden select-none">
+        {/* Circuitos de fondo inspirados en la referencia tecnológica */}
+        <svg className="login-circuits" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+          <path className="login-trace login-trace-cyan" d="M70 -30V210l38 38v170l-38 40v472M155 -20V190l-36 42v255l50 55v358M250 -20V330l-48 52v518M340 -20V165l46 48v124l-42 46v437M450 -20V260l55 60v580M555 -20V120l-38 45v190l50 50v455M665 -20V355l-54 58v487M770 -20V178l-50 52v173l44 48v449M895 -20V292l-52 54v554M1010 -20V145l42 42v178l-48 52v463M1125 -20V325l-54 54v521M1240 -20V220l50 54v626M1350 -20V155l-45 48v697" />
+          <path className="login-trace login-trace-dim" d="M25 -30V340l45 48v512M205 -30V115l45 48v143l-40 42v552M300 -30V245l-42 46v609M405 -30V90l-45 45v274l48 52v439M610 -30V220l-45 50v630M710 -30V80l44 46v224l-42 46v504M830 -30V240l48 52v608M945 -30V102l-40 43v245l48 52v458M1070 -30V260l42 46v594M1190 -30V100l-42 46v300l50 53v401M1300 -30V300l-45 49v551M1400 -30V180l-50 52v638" />
+          <path className="login-trace login-trace-cyan login-trace-flow" d="M70 -30V210l38 38v170l-38 40v472M340 -20V165l46 48v124l-42 46v437M555 -20V120l-38 45v190l50 50v455M770 -20V178l-50 52v173l44 48v449M1010 -20V145l42 42v178l-48 52v463M1240 -20V220l50 54v626" />
+          <g className="login-charge login-charge-one"><circle r="5" fill="currentColor"><animateMotion dur="5.2s" repeatCount="indefinite" path="M70 -30V210l38 38v170l-38 40v472" /></circle></g>
+          <g className="login-charge login-charge-two"><circle r="5" fill="currentColor"><animateMotion dur="6.6s" begin="-2.4s" repeatCount="indefinite" path="M340 -20V165l46 48v124l-42 46v437" /></circle></g>
+          <g className="login-charge login-charge-three"><circle r="4.5" fill="currentColor"><animateMotion dur="5.8s" begin="-1s" repeatCount="indefinite" path="M555 -20V120l-38 45v190l50 50v455" /></circle></g>
+          <g className="login-charge login-charge-two"><circle r="5" fill="currentColor"><animateMotion dur="6.1s" begin="-4s" repeatCount="indefinite" path="M770 -20V178l-50 52v173l44 48v449" /></circle></g>
+          <g className="login-charge login-charge-one"><circle r="5" fill="currentColor"><animateMotion dur="5.5s" begin="-3.5s" repeatCount="indefinite" path="M1010 -20V145l42 42v178l-48 52v463" /></circle></g>
+          <g className="login-charge login-charge-three"><circle r="5" fill="currentColor"><animateMotion dur="6.3s" begin="-1.8s" repeatCount="indefinite" path="M1240 -20V220l50 54v626" /></circle></g>
+        </svg>
 
-      {/* Contenedor Login con Glassmorphism */}
-      <div className="absolute top-[36%] sm:top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[90%] max-w-[380px] p-6 sm:p-7 bg-slate-950/75 backdrop-blur-xl rounded-[24px] border border-white/20 shadow-2xl shadow-black/60 text-white transition-all duration-300 hover:shadow-cyan-500/20">
+        {/* La animación anterior queda fuera de la composición visual nueva. */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full -z-10 opacity-0 pointer-events-none"
+        />
 
-        {/* Cabecera del Login */}
-        <div className="text-center mb-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-[#38bdf8] to-[#0284c7] rounded-2xl mb-2 shadow-lg shadow-sky-500/40 p-1 border border-white/30 overflow-hidden">
-            <img
-              src="/logo.png"
-              alt="YZ DIGITAL"
-              className="w-full h-full object-contain drop-shadow-md"
-              onError={(e) => {
-                // Fallback icon si aún no carga
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
+        {/* Contenedor Login con Glassmorphism */}
+        <div className="login-tech-card relative z-10 w-[min(420px,calc(100% - 40px))] mx-auto p-8 sm:p-[42px] text-white">
+
+          {/* Cabecera del Login */}
+          <div className="text-center mb-6">
+            <div className="login-tech-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M6 5v5m0 4v5M18 5v5m0 4v5M6 10h5v4h7" /><circle cx="6" cy="12" r="2" /></svg>
+            </div>
+            <h1 className="text-[29px] leading-tight font-semibold tracking-[-0.8px] text-center text-white">
+              Iniciar sesión
+            </h1>
+            <p className="mt-2 text-sm text-center text-[#9bc7d6]">
+              Accede a tu espacio seguro.
+            </p>
           </div>
-          <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
-            Iniciar sesión
-          </h2>
-          <p className="text-[11px] text-sky-200 font-semibold mt-0.5">
-            YZ DIGITAL
-          </p>
-        </div>
 
         {/* Mensaje de Error */}
         {errorMessage && (
-          <div className="mb-3.5 p-2.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-semibold text-center animate-fade-in">
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-semibold text-center animate-fade-in">
             {errorMessage}
           </div>
         )}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
-          {/* Campo Usuario */}
+        <form onSubmit={handleSubmit} className="text-left">
           <div>
-            <label className="block text-[11px] font-bold text-sky-100 uppercase tracking-wider mb-1">
-              Usuario
+            <label htmlFor="identifier" className="login-tech-label">
+              Correo o usuario
             </label>
             <input
+              id="identifier"
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Ingresa tu usuario"
+              placeholder="nombre@empresa.com"
+              autoComplete="username"
               required
-              className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-white/15 rounded-xl text-white text-xs outline-none focus:bg-slate-800 focus:border-[#38bdf8] focus:ring-2 focus:ring-sky-400/30 transition-all placeholder:text-slate-400 select-text"
+              className="login-tech-input select-text"
             />
           </div>
 
-          {/* Campo Contraseña */}
           <div>
-            <label className="block text-[11px] font-bold text-sky-100 uppercase tracking-wider mb-1">
+            <label htmlFor="password" className="login-tech-label">
               Contraseña
             </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
+              placeholder="••••••••"
+              autoComplete="current-password"
               required
-              className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-white/15 rounded-xl text-white text-xs outline-none focus:bg-slate-800 focus:border-[#38bdf8] focus:ring-2 focus:ring-sky-400/30 transition-all placeholder:text-slate-400 select-text"
+              className="login-tech-input select-text"
             />
           </div>
 
-          {/* Acciones Recordar / Olvido */}
-          <div className="flex items-center justify-between text-[11px] text-sky-200 pt-0.5">
-            <label className="flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="rounded border-white/20 bg-slate-800 text-sky-500 focus:ring-0 cursor-pointer"
-              />
+          <div className="flex items-center justify-between gap-3 mt-3 mb-[22px] text-[13px] text-[#9bc7d6]">
+            <label className="flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors normal-case tracking-normal font-normal m-0">
+              <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="accent-cyan-400 cursor-pointer" />
               <span>Recordarme</span>
             </label>
             <a
               href="https://wa.me/18297726060?text=Hola,%20olvidé%20mi%20contraseña%20de%20acceso%20a%20YZ%20Digital"
               target="_blank"
               rel="noreferrer"
-              className="text-sky-300 hover:text-white hover:underline transition-colors font-semibold"
+              className="login-tech-link"
             >
               ¿Olvidaste tu contraseña?
             </a>
@@ -1011,7 +1012,7 @@ function LoginFormContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-[#38bdf8] to-[#0284c7] hover:from-[#7dd3fc] hover:to-[#0369a1] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-sky-600/40 hover:shadow-sky-400/50 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            className="login-tech-button flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {loading ? (
               <>
@@ -1019,13 +1020,13 @@ function LoginFormContent() {
                 <span>Autenticando...</span>
               </>
             ) : (
-              <span>Entrar al sistema</span>
+              <span>Entrar</span>
             )}
           </button>
         </form>
 
         {/* Enlace Solicitar Acceso */}
-        <div className="mt-3.5 text-center text-xs text-sky-200">
+        <div className="mt-5 text-center text-xs text-[#9bc7d6]">
           ¿No tienes cuenta?{' '}
           <button
             type="button"
@@ -1034,11 +1035,12 @@ function LoginFormContent() {
               setRegisterSuccess(false);
               setRegisterModalOpen(true);
             }}
-            className="text-sky-300 font-bold hover:text-white hover:underline transition-colors"
+            className="login-tech-link font-bold"
           >
             Solicitar Acceso Mayorista
           </button>
         </div>
+        <p className="login-tech-note">Conexión segura y protegida.</p>
 
       </div>
 
