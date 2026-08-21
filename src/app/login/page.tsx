@@ -948,7 +948,7 @@ function LoginFormContent() {
           {/* Cabecera del Login */}
           <div className="text-center mb-6">
             <div className="login-tech-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M6 5v5m0 4v5M18 5v5m0 4v5M6 10h5v4h7" /><circle cx="6" cy="12" r="2" /></svg>
+              <img src="/logo.png" alt="YZ DIGITAL" className="h-full w-full rounded-[14px] object-contain" />
             </div>
             <h1 className="text-[29px] leading-tight font-semibold tracking-[-0.8px] text-center text-white">
               Iniciar sesión
