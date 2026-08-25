@@ -9,6 +9,12 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 export const metadata: Metadata = {
   title: 'Catálogo de Precios Mayorista',
   description: 'Lista oficial de precios de distribución mayorista.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

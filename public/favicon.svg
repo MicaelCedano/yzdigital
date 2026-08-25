@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title>YZ Digital</title>
+  <desc>Icono azul con las iniciales YZ de YZ Digital</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18c3e7"/>
+      <stop offset="1" stop-color="#0055b8"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9f7ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <path d="M11 15h10l11 15 11-15h10L37 39v10H27V39L11 15Z" fill="url(#mark)"/>
+  <path d="M37 49V15h16L42 27h11L37 49Z" fill="#083b91" opacity=".9"/>
+  <path d="M38 22h13M39 27h9M40 32h6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+  <circle cx="53" cy="22" r="2" fill="#fff"/>
+  <circle cx="49" cy="27" r="1.5" fill="#fff"/>
+</svg>
