@@ -410,9 +410,20 @@ export default function ListaPreciosPage() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start gap-2 sm:gap-4">
+          <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2 sm:gap-4 lg:hidden">
             {activeGroupList.map((groupName) => renderGroupCard(groupName))}
           </div>
+          <div className="hidden lg:grid lg:grid-cols-3 items-start gap-4">
+            {[0, 1, 2].map((columnIndex) => (
+              <div key={columnIndex} className="flex min-w-0 flex-col gap-4">
+                {activeGroupList
+                  .filter((_, index) => index % 3 === columnIndex)
+                  .map((groupName) => renderGroupCard(groupName))}
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 
