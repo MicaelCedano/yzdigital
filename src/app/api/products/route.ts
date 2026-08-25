@@ -108,6 +108,7 @@ export async function POST(request: Request) {
       imageUrl,
       price,
       inActiveList,
+      categoryId,
     } = data;
 
     if (!brand || !model) {
@@ -122,10 +123,14 @@ export async function POST(request: Request) {
     const capacityTrim = (capacity || 'N/A').trim();
     const priceNum = parseFloat(price) || 0;
 
-    // Buscar o crear categoría para esta marca
-    let category = await prisma.category.findFirst({
-      where: { name: { equals: brandUpper } },
-    });
+    // Usar el grupo elegido; mantener compatibilidad con productos creados sin grupo explícito.
+    let category = categoryId
+      ? await prisma.category.findUnique({ where: { id: categoryId } })
+      : await prisma.category.findFirst({ where: { name: { equals: brandUpper } } });
+
+    if (categoryId && !category) {
+      return NextResponse.json({ error: 'El grupo seleccionado no existe.' }, { status: 400 });
+    }
 
     if (!category) {
       category = await prisma.category.create({

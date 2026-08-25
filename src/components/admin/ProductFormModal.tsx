@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/layout/Modal';
-import { Product } from '@/types';
+import { Category, Product } from '@/types';
 import { useToast } from '@/context/ToastContext';
 
 interface ProductFormModalProps {
@@ -10,6 +10,7 @@ interface ProductFormModalProps {
   onClose: () => void;
   onSuccess: () => void;
   productToEdit?: Product | null;
+  categories: Category[];
 }
 
 export function ProductFormModal({
@@ -17,6 +18,7 @@ export function ProductFormModal({
   onClose,
   onSuccess,
   productToEdit,
+  categories,
 }: ProductFormModalProps) {
   const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,7 @@ export function ProductFormModal({
     imageUrl: '',
     price: '',
     inActiveList: true,
+    categoryId: '',
   });
 
   useEffect(() => {
@@ -39,6 +42,7 @@ export function ProductFormModal({
         imageUrl: productToEdit.imageUrl || '',
         price: productToEdit.currentPrice?.priceTier1 ? String(productToEdit.currentPrice.priceTier1) : '',
         inActiveList: productToEdit.inActiveList !== undefined ? productToEdit.inActiveList : true,
+        categoryId: productToEdit.categoryId || '',
       });
     } else {
       setFormData({
@@ -48,9 +52,10 @@ export function ProductFormModal({
         imageUrl: '',
         price: '',
         inActiveList: true,
+        categoryId: categories[0]?.id || '',
       });
     }
-  }, [productToEdit, isOpen]);
+  }, [categories, productToEdit, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +91,7 @@ export function ProductFormModal({
       isOpen={isOpen}
       onClose={onClose}
       title={productToEdit ? 'Editar Producto' : 'Añadir Nuevo Producto'}
-      subtitle="Complete los 5 datos principales del equipo"
+        subtitle="Completa los datos del producto y el grupo donde aparecerá"
       maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,6 +108,29 @@ export function ProductFormModal({
             onChange={(e) => setFormData({ ...formData, brand: e.target.value.toUpperCase() })}
             className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
           />
+        </div>
+
+        {/* Grupo de catálogo */}
+        <div>
+          <label className="block text-xs font-black uppercase text-slate-700 mb-1">
+            Grupo del catálogo *
+          </label>
+          <select
+            required
+            value={formData.categoryId}
+            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+          >
+            <option value="">Selecciona un grupo</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-slate-500">
+            La marca seguirá guardada en el producto; esto solo define cómo se agrupa en el catálogo.
+          </p>
         </div>
 
         {/* 2. Modelo */}

@@ -38,6 +38,7 @@ const DEFAULT_BRAND_COLORS: Record<string, string> = {
   XIAOMI: '#FF4500',
   ALCATEL: '#374151',
   KARGAMAX: '#FF6600',
+  'GENÉRICOS': '#475569',
 };
 
 const PRESET_SWATCHES = [
@@ -147,14 +148,14 @@ export default function ListaPreciosPage() {
     );
   }, [products, search]);
 
-  // Agrupar productos activos por Marca
-  const brandGroups = useMemo(() => {
+  // Agrupar primero por grupo de catálogo. La marca se conserva en cada producto.
+  const categoryGroups = useMemo(() => {
     const map = new Map<string, Product[]>();
 
     filteredProducts.forEach((p) => {
-      const b = p.brand.toUpperCase();
-      if (!map.has(b)) map.set(b, []);
-      map.get(b)!.push(p);
+      const group = p.category?.name?.toUpperCase() || p.brand.toUpperCase();
+      if (!map.has(group)) map.set(group, []);
+      map.get(group)!.push(p);
     });
 
     map.forEach((list) => {
@@ -180,8 +181,8 @@ export default function ListaPreciosPage() {
     return map;
   }, [filteredProducts]);
 
-  // Orden equilibrado de marcas
-  const brandOrder = [
+  // Orden actual de grupos. Se podrá ajustar luego sin tocar los productos.
+  const groupOrder = [
     'BLU',
     'OUKITEL',
     'ZTE',
@@ -200,18 +201,27 @@ export default function ListaPreciosPage() {
     'XIAOMI',
     'ALCATEL',
     'KARGAMAX',
+    'GENÉRICOS',
   ];
 
-  const activeBrandList = useMemo(() => {
+  const activeGroupList = useMemo(() => {
     const list: string[] = [];
-    brandOrder.forEach((b) => {
-      if (brandGroups.has(b)) list.push(b);
+    const orderedCategories = [...categories]
+      .filter((category) => categoryGroups.has(category.name.toUpperCase()))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    orderedCategories.forEach((category) => {
+      const name = category.name.toUpperCase();
+      if (!list.includes(name)) list.push(name);
     });
-    brandGroups.forEach((_, key) => {
+    groupOrder.forEach((group) => {
+      if (categoryGroups.has(group) && !list.includes(group)) list.push(group);
+    });
+    categoryGroups.forEach((_, key) => {
       if (!list.includes(key)) list.push(key);
     });
     return list;
-  }, [brandGroups]);
+  }, [categories, categoryGroups]);
 
   // Obtener color de la marca (personalizado o predeterminado)
   const getBrandHexColor = (brand: string) => {
@@ -250,15 +260,17 @@ export default function ListaPreciosPage() {
       }
     : null;
 
-  const renderBrandCard = (brandName: string) => {
-    const prods = brandGroups.get(brandName.toUpperCase()) || [];
+  const renderGroupCard = (groupName: string) => {
+    const prods = categoryGroups.get(groupName.toUpperCase()) || [];
     if (prods.length === 0) return null;
 
-    const hexColor = getBrandHexColor(brandName);
+    const hexColor = getBrandHexColor(groupName);
+    const brandsInGroup = new Set(prods.map((product) => product.brand.toUpperCase()));
+    const showBrand = brandsInGroup.size > 1 || groupName.toUpperCase() === 'GENÉRICOS';
 
     return (
       <div
-        key={brandName}
+        key={groupName}
         className="break-inside-avoid mb-3 sm:mb-4 rounded-xl border border-slate-200/90 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-sky-300 transition-all duration-200 overflow-hidden"
       >
         {/* Cabecera Compacta y Adaptable */}
@@ -267,7 +279,7 @@ export default function ListaPreciosPage() {
           className="text-white px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-between shadow-inner transition-colors duration-200"
         >
           <h3 className="text-xs sm:text-[13px] md:text-sm font-black tracking-wider uppercase drop-shadow-sm truncate">
-            {brandName}
+            {groupName}
           </h3>
         </div>
 
@@ -283,6 +295,11 @@ export default function ListaPreciosPage() {
             >
               {/* Modelo y capacidad; en móvil ocupan su propia línea */}
               <div className="w-full min-w-0 flex items-center gap-1 transition-transform duration-150 group-hover:translate-x-0.5 sm:flex-1 sm:gap-1.5 sm:pr-2">
+                {showBrand && (
+                  <span className="text-[10px] sm:text-[11px] font-black text-sky-700 uppercase flex-shrink-0">
+                    {p.brand}
+                  </span>
+                )}
                 <span className="text-[12.5px] sm:text-[13.5px] font-black text-slate-900 group-hover:text-sky-700 transition-colors tracking-tight truncate">
                   {p.model}
                 </span>
@@ -394,7 +411,7 @@ export default function ListaPreciosPage() {
           </div>
         ) : (
           <div className="columns-3 gap-1.5 sm:gap-4 space-y-2 sm:space-y-4">
-            {activeBrandList.map((brandName) => renderBrandCard(brandName))}
+            {activeGroupList.map((groupName) => renderGroupCard(groupName))}
           </div>
         )}
       </div>

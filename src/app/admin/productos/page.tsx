@@ -243,6 +243,7 @@ export default function AdminProductosPage() {
                 <tr>
                   <th className="py-3 px-4">Foto</th>
                   <th className="py-3 px-4">Marca</th>
+                  <th className="py-3 px-4">Grupo</th>
                   <th className="py-3 px-4">Modelo</th>
                   <th className="py-3 px-4">RAM y GB</th>
                   <th className="py-3 px-4">Precio (RD$)</th>
@@ -272,6 +273,13 @@ export default function AdminProductosPage() {
                     {/* Marca */}
                     <td className="py-2.5 px-4 font-black text-slate-900 uppercase">
                       {p.brand}
+                    </td>
+
+                    {/* Grupo */}
+                    <td className="py-2.5 px-4">
+                      <span className="inline-flex rounded-full bg-sky-50 px-2 py-1 text-[10px] font-black uppercase text-sky-700 border border-sky-100">
+                        {p.category?.name || 'Sin grupo'}
+                      </span>
                     </td>
 
                     {/* Modelo */}
@@ -344,6 +352,7 @@ export default function AdminProductosPage() {
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchProducts}
         productToEdit={editingProduct}
+        categories={categories}
       />
     </div>
   );

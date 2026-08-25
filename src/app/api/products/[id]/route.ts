@@ -53,6 +53,7 @@ export async function PUT(
       price,
       inActiveList,
       isActive,
+      categoryId: requestedCategoryId,
     } = data;
 
     const existing = await prisma.product.findUnique({
@@ -68,9 +69,14 @@ export async function PUT(
     const modelTrim = model !== undefined ? model.trim() : existing.model;
     const capacityTrim = capacity !== undefined ? capacity.trim() : existing.capacity;
 
-    // Si cambió de marca, asignar o crear la nueva categoría
-    let categoryId = existing.categoryId;
-    if (brand && brandUpper !== existing.brand) {
+    // El grupo se puede cambiar independientemente de la marca.
+    let categoryId = requestedCategoryId || existing.categoryId;
+    if (requestedCategoryId) {
+      const selectedCategory = await prisma.category.findUnique({ where: { id: requestedCategoryId } });
+      if (!selectedCategory) {
+        return NextResponse.json({ error: 'El grupo seleccionado no existe.' }, { status: 400 });
+      }
+    } else if (brand && brandUpper !== existing.brand) {
       let cat = await prisma.category.findFirst({ where: { name: brandUpper } });
       if (!cat) {
         cat = await prisma.category.create({
