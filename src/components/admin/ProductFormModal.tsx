@@ -22,7 +22,6 @@ export function ProductFormModal({
 }: ProductFormModalProps) {
   const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
-  const [imageName, setImageName] = useState('');
 
   const [formData, setFormData] = useState({
     brand: '',
@@ -45,7 +44,6 @@ export function ProductFormModal({
         inActiveList: productToEdit.inActiveList !== undefined ? productToEdit.inActiveList : true,
         categoryId: productToEdit.categoryId || '',
       });
-      setImageName('');
     } else {
       setFormData({
         brand: '',
@@ -56,41 +54,11 @@ export function ProductFormModal({
         inActiveList: true,
         categoryId: categories[0]?.id || '',
       });
-      setImageName('');
     }
   }, [categories, productToEdit, isOpen]);
 
-  const handleImageFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      error('Formato no permitido. Usa JPG, PNG, WEBP o GIF.');
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > 1.5 * 1024 * 1024) {
-      error('La imagen debe pesar 1.5 MB o menos.');
-      event.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFormData((current) => ({ ...current, imageUrl: reader.result as string }));
-        setImageName(file.name);
-      }
-    };
-    reader.onerror = () => error('No se pudo leer la imagen seleccionada.');
-    reader.readAsDataURL(file);
-  };
-
   const handleImageUrlChange = (value: string) => {
     setFormData((current) => ({ ...current, imageUrl: value }));
-    setImageName('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,7 +75,15 @@ export function ProductFormModal({
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: { error?: string } = {};
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error(
+          `El servidor devolvió una respuesta no válida (HTTP ${res.status}). Verifica que la API esté publicada.`
+        );
+      }
       if (!res.ok) {
         throw new Error(data.error || 'Error al guardar el producto');
       }
@@ -216,26 +192,11 @@ export function ProductFormModal({
           />
         </div>
 
-        {/* 5. Foto */}
+        {/* 5. Foto por URL */}
         <div>
           <label className="block text-xs font-black uppercase text-slate-700 mb-1">
-            5. Foto del Producto
+            5. URL de la foto del producto
           </label>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,.webp"
-            onChange={handleImageFile}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-100 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-sky-800 hover:file:bg-sky-200"
-          />
-          <p className="mt-1 text-[11px] text-slate-500">
-            Puedes seleccionar WEBP, JPG, PNG o GIF (máximo 1.5 MB).
-          </p>
-          {imageName && (
-            <p className="mt-1 truncate text-[11px] font-bold text-emerald-700">Archivo: {imageName}</p>
-          )}
-          <div className="my-2 flex items-center gap-2 text-[10px] font-bold uppercase text-slate-400">
-            <span className="h-px flex-1 bg-slate-200" /> o pega una URL <span className="h-px flex-1 bg-slate-200" />
-          </div>
           <input
             type="text"
             inputMode="url"

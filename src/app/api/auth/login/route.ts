@@ -151,6 +151,8 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      // El dominio sin www redirige las API a www; compartir la sesión evita perderla en ese salto.
+      ...(process.env.NODE_ENV === 'production' ? { domain: '.yzdigital.com.do' } : {}),
       maxAge: 60 * 60 * 24 * 7, // 7 días
     });
 
