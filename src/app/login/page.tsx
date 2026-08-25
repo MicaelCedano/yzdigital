@@ -1031,7 +1031,7 @@ function LoginFormContent() {
           </button>
         </form>
 
-        {/* Enlace Solicitar Acceso */}
+        {/* Enlace para solicitar acceso */}
         <div className="mt-5 text-center text-xs text-[#9bc7d6]">
           ¿No tienes cuenta?{' '}
           <button
@@ -1043,14 +1043,14 @@ function LoginFormContent() {
             }}
             className="login-tech-link font-bold"
           >
-            Solicitar Acceso Mayorista
+            Solicitar Acceso a la Lista de Precios
           </button>
         </div>
         <p className="login-tech-note">Conexión segura y protegida.</p>
 
       </div>
 
-      {/* Modal Solicitar Acceso Mayorista */}
+      {/* Modal para solicitar acceso a la lista de precios */}
       {registerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div
@@ -1085,7 +1085,7 @@ function LoginFormContent() {
 
                 <a
                   href={`https://wa.me/18297726060?text=${encodeURIComponent(
-                    `Hola YZ DIGITAL, acabo de solicitar acceso mayorista para mi negocio "${regForm.companyName || regForm.name}" con el usuario "${regForm.username}". Por favor activar mi cuenta.`
+                    `Hola YZ DIGITAL, acabo de solicitar acceso a la lista de precios para mi negocio "${regForm.companyName || regForm.name}" con el usuario "${regForm.username}". Por favor activar mi cuenta.`
                   )}`}
                   target="_blank"
                   rel="noreferrer"
@@ -1106,10 +1106,10 @@ function LoginFormContent() {
               <div className="space-y-4">
                 <div className="text-center">
                   <h3 className="text-lg sm:text-xl font-black text-white">
-                    Solicitar Acceso Mayorista
+                    Solicitar Acceso a la Lista de Precios
                   </h3>
                   <p className="text-xs text-sky-200 mt-1">
-                    Completa tus datos comerciales para que activemos tu cuenta de distribución.
+                    Completa tus datos para que activemos tu acceso a la lista de precios.
                   </p>
                 </div>
 
