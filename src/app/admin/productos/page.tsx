@@ -17,6 +17,9 @@ import {
   ArrowUpDown,
   Filter,
   Package,
+  ArrowDown,
+  ArrowUp,
+  Save,
 } from 'lucide-react';
 
 export default function AdminProductosPage() {
@@ -25,6 +28,7 @@ export default function AdminProductosPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [savingCategoryOrder, setSavingCategoryOrder] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
@@ -102,6 +106,43 @@ export default function AdminProductosPage() {
   const handleOpenEdit = (prod: Product) => {
     setEditingProduct(prod);
     setIsModalOpen(true);
+  };
+
+  const orderedCategories = useMemo(
+    () => [...categories].sort((a, b) => a.sortOrder - b.sortOrder),
+    [categories]
+  );
+
+  const moveCategory = async (categoryId: string, direction: -1 | 1) => {
+    const currentIndex = orderedCategories.findIndex((category) => category.id === categoryId);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= orderedCategories.length || savingCategoryOrder) return;
+
+    const nextCategories = [...orderedCategories];
+    [nextCategories[currentIndex], nextCategories[nextIndex]] = [
+      nextCategories[nextIndex],
+      nextCategories[currentIndex],
+    ];
+    setCategories(nextCategories.map((category, index) => ({ ...category, sortOrder: (index + 1) * 10 })));
+    setSavingCategoryOrder(true);
+
+    try {
+      const res = await fetch('/api/categories/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryIds: nextCategories.map((category) => category.id) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'No se pudo guardar el orden');
+      }
+      success('Orden de grupos guardado');
+    } catch (err: any) {
+      error(err.message);
+      fetchProducts();
+    } finally {
+      setSavingCategoryOrder(false);
+    }
   };
 
   // Filtrado
@@ -227,6 +268,50 @@ export default function AdminProductosPage() {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Orden de grupos */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-sky-600" /> Orden de grupos del catálogo
+            </h2>
+            <p className="text-[11px] text-slate-500 mt-1">Sube o baja un grupo para decidir cuál aparece primero.</p>
+          </div>
+          {savingCategoryOrder && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700">
+              <Save className="w-3.5 h-3.5 animate-pulse" /> Guardando...
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {orderedCategories.map((category, index) => (
+            <div key={category.id} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 pl-3 pr-1 py-1.5">
+              <span className="text-xs font-black uppercase text-slate-800">{category.name}</span>
+              <button
+                type="button"
+                onClick={() => moveCategory(category.id, -1)}
+                disabled={index === 0 || savingCategoryOrder}
+                className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
+                aria-label={`Subir ${category.name}`}
+                title="Subir"
+              >
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveCategory(category.id, 1)}
+                disabled={index === orderedCategories.length - 1 || savingCategoryOrder}
+                className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
+                aria-label={`Bajar ${category.name}`}
+                title="Bajar"
+              >
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
