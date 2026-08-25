@@ -66,7 +66,13 @@ export function ProductFormModal({
     setLoading(true);
 
     try {
-      const url = productToEdit ? `/api/products/${productToEdit.id}` : '/api/products';
+      const canonicalOrigin =
+        typeof window !== 'undefined' && window.location.hostname === 'yzdigital.com.do'
+          ? 'https://www.yzdigital.com.do'
+          : '';
+      const url = productToEdit
+        ? `${canonicalOrigin}/api/products/${productToEdit.id}`
+        : `${canonicalOrigin}/api/products`;
       const method = productToEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
