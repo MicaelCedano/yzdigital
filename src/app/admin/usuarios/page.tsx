@@ -179,7 +179,7 @@ export default function AdminUsuariosPage() {
 
   const openEditUser = (target: UserData) => {
     setEditingUser(target);
-    setAdminForm({ name: target.name, username: target.username, email: target.email, password: '', role: target.role, companyName: target.companyName || '', phone: target.phone || '', city: target.city || '', shippingAddress: target.shippingAddress || '' });
+    setAdminForm({ name: target.name, username: target.username, email: '', password: '', role: target.role, companyName: target.companyName || '', phone: target.phone || '', city: target.city || '', shippingAddress: target.shippingAddress || '' });
     setAdminModalOpen(true);
   };
 
@@ -189,7 +189,7 @@ export default function AdminUsuariosPage() {
     try {
       const url = editingUser ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
       const body = editingUser
-        ? { name: adminForm.name, email: adminForm.email, shippingAddress: adminForm.shippingAddress, ...(adminForm.password ? { password: adminForm.password } : {}) }
+        ? { name: adminForm.name, shippingAddress: adminForm.shippingAddress, ...(adminForm.password ? { password: adminForm.password } : {}) }
         : adminForm;
       const res = await fetch(url, {
         method: editingUser ? 'PATCH' : 'POST',
@@ -761,23 +761,20 @@ export default function AdminUsuariosPage() {
                   <option value="ADMIN">Administrador</option>
                 </select>
               )}
-              {!editingUser && (
+              <div>
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  Nombre de usuario
+                </label>
                 <input
                   required
                   value={adminForm.username}
                   onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value })}
-                  placeholder="Usuario de acceso"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  placeholder="Ej.: juanperez"
+                  readOnly={Boolean(editingUser)}
+                  className={`w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 ${editingUser ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-slate-50'}`}
                 />
-              )}
-              <input
-                required
-                type="email"
-                value={adminForm.email}
-                onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
-                placeholder="Correo electrónico"
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-              />
+                {editingUser && <p className="mt-1 text-[10px] text-slate-400">El nombre de usuario se usa para iniciar sesión.</p>}
+              </div>
               <input
                 value={adminForm.companyName}
                 onChange={(e) => setAdminForm({ ...adminForm, companyName: e.target.value })}

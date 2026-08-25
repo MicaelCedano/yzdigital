@@ -15,7 +15,9 @@ export async function POST(request: Request) {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : `${cleanUsername}@solicitud.yzdigital.com`;
+    // El usuario inicia sesión con username; este valor solo satisface la
+    // columna email heredada y no se muestra como correo de contacto.
+    const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : `${cleanUsername}@cuentas.yzdigital.local`;
     const cleanPhone = phone.trim();
 
     // Validar si el usuario ya existe

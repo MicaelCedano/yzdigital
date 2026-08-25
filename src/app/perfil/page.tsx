@@ -115,11 +115,6 @@ export default function PerfilPage() {
                 <span className="font-bold text-slate-800">@{user.username}</span>
               </div>
 
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Correo Electrónico</span>
-                <span className="font-semibold text-slate-800">{user.email}</span>
-              </div>
-
               {user.companyName && (
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Empresa / Razón Social</span>

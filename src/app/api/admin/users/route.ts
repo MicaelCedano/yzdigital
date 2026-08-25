@@ -22,7 +22,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const name = String(body.name || '').trim();
     const username = String(body.username || '').trim().toLowerCase();
-    const email = String(body.email || '').trim().toLowerCase();
+    // El acceso es por username. La columna email sigue siendo obligatoria
+    // por compatibilidad con el esquema, pero no se le pide al administrador.
+    const email = String(body.email || '').trim().toLowerCase() || `${username}@cuentas.yzdigital.local`;
     const password = String(body.password || '');
     const role = body.role === 'WHOLESALER' ? 'WHOLESALER' : 'ADMIN';
     const companyName = String(body.companyName || '').trim() || null;
@@ -30,9 +32,9 @@ export async function POST(request: Request) {
     const city = String(body.city || '').trim() || null;
     const shippingAddress = String(body.shippingAddress || '').trim() || null;
 
-    if (!name || !username || !email || password.length < 8) {
+    if (!name || !username || password.length < 8) {
       return NextResponse.json(
-        { error: 'Nombre, usuario, correo y una contraseña de mínimo 8 caracteres son obligatorios.' },
+        { error: 'Nombre, usuario y una contraseña de mínimo 8 caracteres son obligatorios.' },
         { status: 400 }
       );
     }

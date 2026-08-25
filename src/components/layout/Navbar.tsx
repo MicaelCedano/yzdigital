@@ -168,7 +168,7 @@ export function Navbar() {
             <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-slate-900">{user.name}</p>
-                <p className="text-[11px] text-slate-500">{user.email}</p>
+                <p className="text-[11px] text-slate-500">@{user.username}</p>
               </div>
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-700">
                 {user.role}
