@@ -411,7 +411,7 @@ export default function ListaPreciosPage() {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 items-start gap-2 sm:gap-4 lg:hidden">
+          <div className="grid grid-cols-3 items-start gap-1.5 sm:gap-4 lg:hidden">
             {activeGroupList.map((groupName) => renderGroupCard(groupName))}
           </div>
           <div className="hidden lg:grid lg:grid-cols-3 items-start gap-4">
