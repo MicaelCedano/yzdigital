@@ -271,7 +271,7 @@ export default function ListaPreciosPage() {
     return (
       <div
         key={groupName}
-        className="break-inside-avoid mb-3 sm:mb-4 rounded-xl border border-slate-200/90 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-sky-300 transition-all duration-200 overflow-hidden"
+        className="break-inside-avoid rounded-xl border border-slate-200/90 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-sky-300 transition-all duration-200 overflow-hidden"
       >
         {/* Cabecera Compacta y Adaptable */}
         <div
@@ -411,12 +411,9 @@ export default function ListaPreciosPage() {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-3 items-start gap-1.5 sm:gap-4 lg:hidden">
-            {activeGroupList.map((groupName) => renderGroupCard(groupName))}
-          </div>
-          <div className="hidden lg:grid lg:grid-cols-3 items-start gap-4">
+          <div className="grid grid-cols-3 items-start gap-1.5 sm:gap-4">
             {[0, 1, 2].map((columnIndex) => (
-              <div key={columnIndex} className="flex min-w-0 flex-col gap-4">
+              <div key={columnIndex} className="flex min-w-0 flex-col gap-1.5 sm:gap-4">
                 {activeGroupList
                   .filter((_, index) => index % 3 === columnIndex)
                   .map((groupName) => renderGroupCard(groupName))}
