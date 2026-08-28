@@ -107,6 +107,8 @@ export async function POST(request: Request) {
       capacity,
       imageUrl,
       price,
+      priceTier2,
+      priceTier3,
       inActiveList,
       categoryId,
     } = data;
@@ -122,6 +124,8 @@ export async function POST(request: Request) {
     const modelTrim = model.trim();
     const capacityTrim = (capacity || 'N/A').trim();
     const priceNum = parseFloat(price) || 0;
+    const priceTier2Num = priceTier2 == null ? Math.max(0, priceNum - 100) : Number(priceTier2) || 0;
+    const priceTier3Num = priceTier3 == null ? Math.max(0, priceNum - 200) : Number(priceTier3) || 0;
 
     // Usar el grupo elegido; mantener compatibilidad con productos creados sin grupo explícito.
     let category = categoryId
@@ -177,8 +181,8 @@ export async function POST(request: Request) {
           priceListId: defaultList.id,
           currency: defaultList.currency || 'DOP',
           priceTier1: priceNum,
-          priceTier2: Math.max(0, priceNum - 100),
-          priceTier3: Math.max(0, priceNum - 200),
+          priceTier2: priceTier2Num,
+          priceTier3: priceTier3Num,
           isActive: true,
           createdById: admin.id,
         },

@@ -22,6 +22,7 @@ export function ProductFormModal({
 }: ProductFormModalProps) {
   const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
+  const [automaticTiers, setAutomaticTiers] = useState({ tier2: true, tier3: true });
 
   const [formData, setFormData] = useState({
     brand: '',
@@ -29,20 +30,31 @@ export function ProductFormModal({
     capacity: '',
     imageUrl: '',
     price: '',
+    priceTier2: '',
+    priceTier3: '',
     inActiveList: true,
     categoryId: '',
   });
 
   useEffect(() => {
     if (productToEdit) {
+      const priceTier1 = productToEdit.currentPrice?.priceTier1 || 0;
+      const priceTier2 = productToEdit.currentPrice?.priceTier2 ?? Math.max(0, priceTier1 - 100);
+      const priceTier3 = productToEdit.currentPrice?.priceTier3 ?? Math.max(0, priceTier1 - 200);
       setFormData({
         brand: productToEdit.brand || '',
         model: productToEdit.model || '',
         capacity: productToEdit.capacity || '',
         imageUrl: productToEdit.imageUrl || '',
-        price: productToEdit.currentPrice?.priceTier1 ? String(productToEdit.currentPrice.priceTier1) : '',
+        price: priceTier1 ? String(priceTier1) : '',
+        priceTier2: String(priceTier2),
+        priceTier3: String(priceTier3),
         inActiveList: productToEdit.inActiveList !== undefined ? productToEdit.inActiveList : true,
         categoryId: productToEdit.categoryId || '',
+      });
+      setAutomaticTiers({
+        tier2: priceTier2 === 0 || priceTier2 === priceTier1 || priceTier2 === Math.max(0, priceTier1 - 100),
+        tier3: priceTier3 === 0 || priceTier3 === priceTier1 || priceTier3 === Math.max(0, priceTier1 - 200),
       });
     } else {
       setFormData({
@@ -51,9 +63,12 @@ export function ProductFormModal({
         capacity: '4+128GB',
         imageUrl: '',
         price: '',
+        priceTier2: '',
+        priceTier3: '',
         inActiveList: true,
         categoryId: categories[0]?.id || '',
       });
+      setAutomaticTiers({ tier2: true, tier3: true });
     }
   }, [categories, productToEdit, isOpen]);
 
@@ -74,11 +89,17 @@ export function ProductFormModal({
         ? `${canonicalOrigin}/api/products/${productToEdit.id}`
         : `${canonicalOrigin}/api/products`;
       const method = productToEdit ? 'PUT' : 'POST';
+      const priceTier1 = Number(formData.price) || 0;
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          price: priceTier1,
+          priceTier2: automaticTiers.tier2 ? null : Number(formData.priceTier2) || 0,
+          priceTier3: automaticTiers.tier3 ? null : Number(formData.priceTier3) || 0,
+        }),
       });
 
       const responseText = await res.text();
@@ -193,9 +214,38 @@ export function ProductFormModal({
             required
             placeholder="Ej: 7200, 8800, 35500..."
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            onChange={(e) => {
+              const price = e.target.value;
+              const priceNum = Number(price) || 0;
+              setFormData((current) => ({
+                ...current,
+                price,
+                priceTier2: automaticTiers.tier2 ? String(Math.max(0, priceNum - 100)) : current.priceTier2,
+                priceTier3: automaticTiers.tier3 ? String(Math.max(0, priceNum - 200)) : current.priceTier3,
+              }));
+            }}
             className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-base font-black text-[#B71C1C] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
           />
+        </div>
+
+        {/* Precios por volumen */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-black uppercase text-slate-700">Precio 2 (10–49)</label>
+              <button type="button" onClick={() => setAutomaticTiers((current) => ({ ...current, tier2: !current.tier2 }))} className="text-[10px] font-bold text-blue-700 hover:underline">{automaticTiers.tier2 ? 'Automático' : 'Manual'}</button>
+            </div>
+            <input type="number" step="0.01" min="0" value={formData.priceTier2} disabled={automaticTiers.tier2} onChange={(e) => setFormData({ ...formData, priceTier2: e.target.value })} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-black text-slate-900 disabled:bg-slate-100" />
+            <span className="text-[10px] text-slate-500">{automaticTiers.tier2 ? 'Precio 1 − RD$100' : 'Escribe el precio manual'}</span>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-black uppercase text-emerald-800">Precio 3 (50+)</label>
+              <button type="button" onClick={() => setAutomaticTiers((current) => ({ ...current, tier3: !current.tier3 }))} className="text-[10px] font-bold text-emerald-700 hover:underline">{automaticTiers.tier3 ? 'Automático' : 'Manual'}</button>
+            </div>
+            <input type="number" step="0.01" min="0" value={formData.priceTier3} disabled={automaticTiers.tier3} onChange={(e) => setFormData({ ...formData, priceTier3: e.target.value })} className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-black text-emerald-950 disabled:bg-slate-100" />
+            <span className="text-[10px] text-emerald-700">{automaticTiers.tier3 ? 'Precio 1 − RD$200' : 'Escribe el precio manual'}</span>
+          </div>
         </div>
 
         {/* 5. Foto por URL */}
