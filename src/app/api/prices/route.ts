@@ -94,8 +94,14 @@ export async function POST(request: Request) {
     }
 
     const tier1 = Number(priceTier1) || 0;
-    const tier2 = Number(priceTier2) || tier1;
-    const tier3 = Number(priceTier3) || tier2;
+    // Si el administrador deja un nivel vacío, conserva el comportamiento
+    // automático histórico. Un valor enviado explícitamente se respeta como manual.
+    const tier2 = priceTier2 === null || priceTier2 === undefined || priceTier2 === ''
+      ? Math.max(0, tier1 - 100)
+      : Number(priceTier2);
+    const tier3 = priceTier3 === null || priceTier3 === undefined || priceTier3 === ''
+      ? Math.max(0, tier1 - 200)
+      : Number(priceTier3);
 
     const existingPrice = await prisma.productPrice.findUnique({
       where: {

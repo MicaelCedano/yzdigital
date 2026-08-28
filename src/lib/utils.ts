@@ -31,10 +31,12 @@ export function getTierPrice(
 ): { price: number; tierLabel: string } {
   const listPrice = tiers.tier1 ?? 0;
   if (quantity >= 50) {
-    return { price: Math.max(0, listPrice - 200), tierLabel: '50+ uds (-RD$200)' };
+    const price = tiers.tier3 ?? Math.max(0, listPrice - 200);
+    return { price: Math.max(0, price), tierLabel: '50+ uds' };
   }
   if (quantity >= 10) {
-    return { price: Math.max(0, listPrice - 100), tierLabel: '10-49 uds (-RD$100)' };
+    const price = tiers.tier2 ?? Math.max(0, listPrice - 100);
+    return { price: Math.max(0, price), tierLabel: '10-49 uds' };
   }
   return { price: listPrice, tierLabel: '1-9 uds' };
 }

@@ -149,7 +149,7 @@ export function CartDrawer() {
 
             <div className="space-y-3 border-t border-slate-200 bg-white p-5">
               <div className="rounded-xl bg-emerald-50 p-3 text-[11px] font-semibold leading-relaxed text-emerald-800">
-                Descuento automático: RD$100 menos por unidad desde 10 equipos y RD$200 menos por unidad desde 50 equipos.
+                El precio por volumen se aplica automáticamente según la escala configurada para cada producto.
               </div>
               <div className="flex items-end justify-between">
                 <div>

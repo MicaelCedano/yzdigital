@@ -37,11 +37,19 @@ export function PriceEditModal({
     isActive: true,
     reason: '',
   });
+  const [automaticTiers, setAutomaticTiers] = useState({ tier2: true, tier3: true });
+
+  const automaticTier2 = (tier1: number) => Math.max(0, tier1 - 100);
+  const automaticTier3 = (tier1: number) => Math.max(0, tier1 - 200);
+
+  const isLegacyAutomatic = (value: number | null | undefined, automaticValue: number, tier1: number) =>
+    value == null || value === 0 || value === tier1 || value === automaticValue;
 
   useEffect(() => {
     if (existingPrice) {
+      const tier1 = existingPrice.priceTier1;
       setFormData({
-        priceTier1: existingPrice.priceTier1,
+        priceTier1: tier1,
         priceTier2: existingPrice.priceTier2 ?? 0,
         priceTier3: existingPrice.priceTier3 ?? 0,
         currency: existingPrice.currency || 'USD',
@@ -50,17 +58,23 @@ export function PriceEditModal({
         isActive: existingPrice.isActive,
         reason: '',
       });
+      setAutomaticTiers({
+        tier2: isLegacyAutomatic(existingPrice.priceTier2, automaticTier2(tier1), tier1),
+        tier3: isLegacyAutomatic(existingPrice.priceTier3, automaticTier3(tier1), tier1),
+      });
     } else if (product) {
+      const tier1 = product.currentPrice?.priceTier1 || 0;
       setFormData({
-        priceTier1: product.currentPrice?.priceTier1 || 0,
-        priceTier2: product.currentPrice?.priceTier2 || 0,
-        priceTier3: product.currentPrice?.priceTier3 || 0,
+        priceTier1: tier1,
+        priceTier2: automaticTier2(tier1),
+        priceTier3: automaticTier3(tier1),
         currency: priceList?.currency || 'USD',
         validFrom: new Date().toISOString().split('T')[0],
         validUntil: '',
         isActive: true,
         reason: '',
       });
+      setAutomaticTiers({ tier2: true, tier3: true });
     }
   }, [existingPrice, product, priceList, isOpen]);
 
@@ -83,8 +97,8 @@ export function PriceEditModal({
           productId: product.id,
           priceListId: priceList.id,
           priceTier1: formData.priceTier1,
-          priceTier2: formData.priceTier2,
-          priceTier3: formData.priceTier3,
+          priceTier2: automaticTiers.tier2 ? null : formData.priceTier2,
+          priceTier3: automaticTiers.tier3 ? null : formData.priceTier3,
           currency: formData.currency,
           validFrom: formData.validFrom || null,
           validUntil: formData.validUntil || null,
@@ -190,42 +204,62 @@ export function PriceEditModal({
                 required
                 placeholder="0.00"
                 value={formData.priceTier1}
-                onChange={(e) => setFormData({ ...formData, priceTier1: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const priceTier1 = parseFloat(e.target.value) || 0;
+                  setFormData((current) => ({
+                    ...current,
+                    priceTier1,
+                    priceTier2: automaticTiers.tier2 ? automaticTier2(priceTier1) : current.priceTier2,
+                    priceTier3: automaticTiers.tier3 ? automaticTier3(priceTier1) : current.priceTier3,
+                  }));
+                }}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-[10px] text-slate-500 mt-0.5 block">Precio unitario base</span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
-                10 a 49 unidades
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase">
+                  10 a 49 unidades
+                </label>
+                <button type="button" onClick={() => setAutomaticTiers((current) => ({ ...current, tier2: !current.tier2 }))} className="text-[10px] font-bold text-blue-700 hover:underline">
+                  {automaticTiers.tier2 ? 'Automático' : 'Manual'}
+                </button>
+              </div>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
                 value={formData.priceTier2}
+                disabled={automaticTiers.tier2}
                 onChange={(e) => setFormData({ ...formData, priceTier2: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-[10px] text-slate-500 mt-0.5 block">Descuento intermedio</span>
+              <span className="text-[10px] text-slate-500 mt-0.5 block">{automaticTiers.tier2 ? 'RD$100 menos que el Precio 1' : 'Valor manual'}</span>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-emerald-800 uppercase mb-1">
-                50+ unidades (VIP)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-emerald-800 uppercase">
+                  50+ unidades (VIP)
+                </label>
+                <button type="button" onClick={() => setAutomaticTiers((current) => ({ ...current, tier3: !current.tier3 }))} className="text-[10px] font-bold text-emerald-700 hover:underline">
+                  {automaticTiers.tier3 ? 'Automático' : 'Manual'}
+                </button>
+              </div>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
                 value={formData.priceTier3}
+                disabled={automaticTiers.tier3}
                 onChange={(e) => setFormData({ ...formData, priceTier3: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-sm font-black text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
-              <span className="text-[10px] text-emerald-700 mt-0.5 block">Mejor precio por lote</span>
+              <span className="text-[10px] text-emerald-700 mt-0.5 block">{automaticTiers.tier3 ? 'RD$200 menos que el Precio 1' : 'Valor manual'}</span>
             </div>
           </div>
         </div>
