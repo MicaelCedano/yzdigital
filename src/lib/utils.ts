@@ -31,11 +31,17 @@ export function getTierPrice(
 ): { price: number; tierLabel: string } {
   const listPrice = tiers.tier1 ?? 0;
   if (quantity >= 50) {
-    const price = tiers.tier3 ?? Math.max(0, listPrice - 200);
+    // Compatibilidad con registros anteriores: antes se guardaban los tres
+    // niveles iguales al Precio 1 aunque la regla fuera automática.
+    const price = tiers.tier3 == null || tiers.tier3 === listPrice
+      ? Math.max(0, listPrice - 200)
+      : tiers.tier3;
     return { price: Math.max(0, price), tierLabel: '50+ uds' };
   }
   if (quantity >= 10) {
-    const price = tiers.tier2 ?? Math.max(0, listPrice - 100);
+    const price = tiers.tier2 == null || tiers.tier2 === listPrice
+      ? Math.max(0, listPrice - 100)
+      : tiers.tier2;
     return { price: Math.max(0, price), tierLabel: '10-49 uds' };
   }
   return { price: listPrice, tierLabel: '1-9 uds' };
