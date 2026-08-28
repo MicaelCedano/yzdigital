@@ -41,20 +41,22 @@ export function ProductFormModal({
       const priceTier1 = productToEdit.currentPrice?.priceTier1 || 0;
       const priceTier2 = productToEdit.currentPrice?.priceTier2 ?? Math.max(0, priceTier1 - 100);
       const priceTier3 = productToEdit.currentPrice?.priceTier3 ?? Math.max(0, priceTier1 - 200);
+      const tier2IsAutomatic = priceTier2 === 0 || priceTier2 === priceTier1 || priceTier2 === Math.max(0, priceTier1 - 100);
+      const tier3IsAutomatic = priceTier3 === 0 || priceTier3 === priceTier1 || priceTier3 === Math.max(0, priceTier1 - 200);
       setFormData({
         brand: productToEdit.brand || '',
         model: productToEdit.model || '',
         capacity: productToEdit.capacity || '',
         imageUrl: productToEdit.imageUrl || '',
         price: priceTier1 ? String(priceTier1) : '',
-        priceTier2: String(priceTier2),
-        priceTier3: String(priceTier3),
+        priceTier2: String(tier2IsAutomatic ? Math.max(0, priceTier1 - 100) : priceTier2),
+        priceTier3: String(tier3IsAutomatic ? Math.max(0, priceTier1 - 200) : priceTier3),
         inActiveList: productToEdit.inActiveList !== undefined ? productToEdit.inActiveList : true,
         categoryId: productToEdit.categoryId || '',
       });
       setAutomaticTiers({
-        tier2: priceTier2 === 0 || priceTier2 === priceTier1 || priceTier2 === Math.max(0, priceTier1 - 100),
-        tier3: priceTier3 === 0 || priceTier3 === priceTier1 || priceTier3 === Math.max(0, priceTier1 - 200),
+        tier2: tier2IsAutomatic,
+        tier3: tier3IsAutomatic,
       });
     } else {
       setFormData({
