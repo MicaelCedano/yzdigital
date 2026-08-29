@@ -40,3 +40,48 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: 'No se pudo editar el usuario.' }, { status: 500 });
   }
 }
+
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+  try {
+    const token = cookies().get(COOKIE_NAME)?.value;
+    const session = token ? await verifySessionToken(token) : null;
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Acceso exclusivo para administradores' }, { status: 403 });
+    }
+
+    if (session.id === params.id) {
+      return NextResponse.json({ error: 'No puedes eliminar tu propia cuenta.' }, { status: 400 });
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id: params.id },
+      select: { id: true, name: true, status: true },
+    });
+
+    if (!target) {
+      return NextResponse.json({ error: 'La cuenta no existe.' }, { status: 404 });
+    }
+
+    if (target.status !== 'REJECTED') {
+      return NextResponse.json({ error: 'Solo se pueden eliminar cuentas rechazadas.' }, { status: 409 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Estas relaciones no tienen borrado en cascada porque deben conservarse.
+      await tx.productPrice.updateMany({
+        where: { createdById: params.id },
+        data: { createdById: null },
+      });
+      await tx.productPrice.updateMany({
+        where: { updatedById: params.id },
+        data: { updatedById: null },
+      });
+      await tx.user.delete({ where: { id: params.id } });
+    });
+
+    return NextResponse.json({ success: true, message: `La cuenta de ${target.name} fue eliminada.` });
+  } catch (error) {
+    console.error('Error al eliminar usuario rechazado:', error);
+    return NextResponse.json({ error: 'No se pudo eliminar la cuenta.' }, { status: 500 });
+  }
+}

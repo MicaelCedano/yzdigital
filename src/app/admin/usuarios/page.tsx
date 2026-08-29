@@ -26,6 +26,7 @@ import {
   UserPlus,
   X,
   Save,
+  Trash2,
 } from 'lucide-react';
 
 interface UserData {
@@ -165,6 +166,28 @@ export default function AdminUsuariosPage() {
         toastError('Error', data.error || 'No se pudo desvincular el dispositivo.');
       }
     } catch (err) {
+      toastError('Error de red', 'Intenta nuevamente.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteRejected = async (userId: string, userName: string) => {
+    if (!confirm(`¿Estás seguro de eliminar la cuenta rechazada de "${userName}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setUpdatingId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        success('Cuenta eliminada', `La cuenta de ${userName} fue eliminada correctamente.`);
+        fetchUsers(true);
+      } else {
+        toastError('No se pudo eliminar', data.error || 'La cuenta no pudo eliminarse.');
+      }
+    } catch {
       toastError('Error de red', 'Intenta nuevamente.');
     } finally {
       setUpdatingId(null);
@@ -647,7 +670,7 @@ export default function AdminUsuariosPage() {
                             {u.phone && (
                               <a
                                 href={`https://wa.me/${u.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                                  `Hola ${u.name}, te escribimos de YZ DIGITAL. Tu cuenta mayorista está activa. Puedes acceder con tu usuario "${u.username}" en http://localhost:3000/login`
+                                  `Hola ${u.name}, te escribimos de YZ DIGITAL. Tu cuenta mayorista está activa. Puedes acceder con tu usuario "${u.username}" en https://www.yzdigital.com.do/`
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
@@ -661,13 +684,23 @@ export default function AdminUsuariosPage() {
                         )}
 
                         {isRejected && (
-                          <button
-                            onClick={() => handleUpdateStatus(u.id, 'APPROVED', u.name)}
-                            disabled={updatingId === u.id}
-                            className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all"
-                          >
-                            Reactivar y Aprobar
-                          </button>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => handleUpdateStatus(u.id, 'APPROVED', u.name)}
+                              disabled={updatingId === u.id}
+                              className="py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all"
+                            >
+                              Reactivar y Aprobar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRejected(u.id, u.name)}
+                              disabled={updatingId === u.id}
+                              className="py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Eliminar
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
