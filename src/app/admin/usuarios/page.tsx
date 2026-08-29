@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
+import { Modal } from '@/components/layout/Modal';
 import {
   Users,
   Clock,
@@ -89,6 +90,7 @@ export default function AdminUsuariosPage() {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [adminForm, setAdminForm] = useState({ name: '', username: '', email: '', password: '', role: 'WHOLESALER', companyName: '', phone: '', city: '', shippingAddress: '' });
   const [adminSaving, setAdminSaving] = useState(false);
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<{ id: string; name: string } | null>(null);
 
   const fetchUsers = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
@@ -173,16 +175,13 @@ export default function AdminUsuariosPage() {
   };
 
   const handleDeleteRejected = async (userId: string, userName: string) => {
-    if (!confirm(`¿Estás seguro de eliminar la cuenta rechazada de "${userName}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
-
     setUpdatingId(userId);
     try {
       const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
       const data = await res.json();
       if (res.ok) {
         success('Cuenta eliminada', `La cuenta de ${userName} fue eliminada correctamente.`);
+        setDeleteConfirmUser(null);
         fetchUsers(true);
       } else {
         toastError('No se pudo eliminar', data.error || 'La cuenta no pudo eliminarse.');
@@ -192,6 +191,10 @@ export default function AdminUsuariosPage() {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const requestDeleteRejected = (userId: string, userName: string) => {
+    setDeleteConfirmUser({ id: userId, name: userName });
   };
 
   const openCreateAdmin = () => {
@@ -693,7 +696,7 @@ export default function AdminUsuariosPage() {
                               Reactivar y Aprobar
                             </button>
                             <button
-                              onClick={() => handleDeleteRejected(u.id, u.name)}
+                              onClick={() => requestDeleteRejected(u.id, u.name)}
                               disabled={updatingId === u.id}
                               className="py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
                             >
@@ -755,6 +758,51 @@ export default function AdminUsuariosPage() {
           </div>
         )}
       </div>
+
+      {deleteConfirmUser && (
+        <Modal
+          isOpen
+          onClose={() => setDeleteConfirmUser(null)}
+          title="Eliminar cuenta rechazada"
+          subtitle="Esta acción es permanente y no se puede deshacer."
+          maxWidth="sm"
+        >
+          <div className="space-y-5">
+            <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  ¿Eliminar la cuenta de {deleteConfirmUser.name}?
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Se eliminará el acceso y la información de esta cuenta rechazada.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmUser(null)}
+                disabled={updatingId === deleteConfirmUser.id}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteRejected(deleteConfirmUser.id, deleteConfirmUser.name)}
+                disabled={updatingId === deleteConfirmUser.id}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {updatingId === deleteConfirmUser.id ? 'Eliminando...' : 'Eliminar cuenta'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {adminModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">

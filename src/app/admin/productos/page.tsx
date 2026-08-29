@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Product, Category } from '@/types';
 import { ProductFormModal } from '@/components/admin/ProductFormModal';
+import { BrandColorCustomizer } from '@/components/admin/BrandColorCustomizer';
 import {
   Plus,
   Search,
@@ -113,6 +114,11 @@ export default function AdminProductosPage() {
   const orderedCategories = useMemo(
     () => [...categories].sort((a, b) => a.sortOrder - b.sortOrder),
     [categories]
+  );
+
+  const brandsInCatalog = useMemo(
+    () => Array.from(new Set(products.map((product) => product.brand.toUpperCase()))).sort(),
+    [products]
   );
 
   const moveCategory = (categoryId: string, direction: -1 | 1) => {
@@ -303,15 +309,18 @@ export default function AdminProductosPage() {
             </h2>
             <p className="text-[11px] text-slate-500 mt-1">Arrastra los grupos, acomódalos todos y guarda al final.</p>
           </div>
-          <button
-            type="button"
-            onClick={saveCategoryOrder}
-            disabled={!categoryOrderDirty || savingCategoryOrder}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-          >
-            <Save className="w-3.5 h-3.5" />
-            {savingCategoryOrder ? 'Guardando...' : 'Guardar orden'}
-          </button>
+          <div className="flex items-center gap-2">
+            <BrandColorCustomizer brands={brandsInCatalog} />
+            <button
+              type="button"
+              onClick={saveCategoryOrder}
+              disabled={!categoryOrderDirty || savingCategoryOrder}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+            >
+              <Save className="w-3.5 h-3.5" />
+              {savingCategoryOrder ? 'Guardando...' : 'Guardar orden'}
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {orderedCategories.map((category, index) => (
