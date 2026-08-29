@@ -56,6 +56,10 @@ const PRESET_SWATCHES = [
   '#0B132B', // Negro Noche
 ];
 
+const GROUP_DISPLAY_NAMES: Record<string, string> = {
+  TCL: 'TCL / ALCATEL',
+};
+
 export default function ListaPreciosPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { addItem } = useCart();
@@ -267,6 +271,7 @@ export default function ListaPreciosPage() {
     const hexColor = getBrandHexColor(groupName);
     const brandsInGroup = new Set(prods.map((product) => product.brand.toUpperCase()));
     const showBrand = brandsInGroup.size > 1 || groupName.toUpperCase() === 'GENÉRICOS';
+    const displayName = GROUP_DISPLAY_NAMES[groupName.toUpperCase()] || groupName;
 
     return (
       <div
@@ -279,7 +284,7 @@ export default function ListaPreciosPage() {
           className="text-white px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-between shadow-inner transition-colors duration-200"
         >
           <h3 className="text-xs sm:text-[13px] md:text-sm font-black tracking-wider uppercase drop-shadow-sm truncate">
-            {groupName}
+            {displayName}
           </h3>
         </div>
 
