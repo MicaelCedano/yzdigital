@@ -189,7 +189,7 @@ export default function ListaPreciosPage() {
   const groupOrder = [
     'BLU',
     'OUKITEL',
-    'ZTE',
+    'GENÉRICOS',
     'TELEVISION',
     'MOTOROLA',
     'VORTEX',
@@ -205,7 +205,7 @@ export default function ListaPreciosPage() {
     'XIAOMI',
     'ALCATEL',
     'KARGAMAX',
-    'GENÉRICOS',
+    'ZTE',
   ];
 
   const activeGroupList = useMemo(() => {
