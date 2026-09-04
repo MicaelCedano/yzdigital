@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { User, Role } from '@/types';
+import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -41,37 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  // Enviar pulso de actividad (Heartbeat) automático y al regresar a la pestaña
-  useEffect(() => {
-    if (!user) return;
-
-    const sendPing = () => {
-      fetch('/api/auth/heartbeat', { method: 'POST' }).catch(() => {});
-    };
-
-    // Pulso inicial inmediato
-    sendPing();
-
-    // Pulso cada 60 segundos mientras esté navegando
-    const interval = setInterval(sendPing, 60000);
-
-    // Pulso instantáneo cuando el cliente regresa o hace clic en la pestaña
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        sendPing();
-      }
-    };
-
-    window.addEventListener('focus', sendPing);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', sendPing);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user]);
-
   const login = async (identifier: string, password: string) => {
     setLoading(true);
     try {
@@ -96,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
@@ -104,7 +73,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push('/login');
       router.refresh();
     }
-  };
+  }, [router]);
+
+  // Cierre por inactividad exclusivamente para mayoristas.
+  useEffect(() => {
+    if (!user || user.role !== 'WHOLESALER') return;
+
+    const timeoutMs = 30 * 60 * 1000;
+    const pingIntervalMs = 60 * 1000;
+    let lastInteractionAt = Date.now();
+    let lastPingAt = 0;
+    let logoutStarted = false;
+
+    const sendPing = async () => {
+      if (logoutStarted) return;
+      lastPingAt = Date.now();
+      try {
+        const response = await fetch('/api/auth/heartbeat', { method: 'POST' });
+        if (response.status === 401 && !logoutStarted) {
+          logoutStarted = true;
+          await logout();
+        }
+      } catch {
+        // Un corte de red no cierra la sesión por sí solo; el siguiente pulso reintenta.
+      }
+    };
+
+    const recordInteraction = () => {
+      lastInteractionAt = Date.now();
+      if (lastInteractionAt - lastPingAt >= pingIntervalMs) void sendPing();
+    };
+
+    const checkIdle = () => {
+      if (Date.now() - lastInteractionAt >= timeoutMs && !logoutStarted) {
+        logoutStarted = true;
+        void logout();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        recordInteraction();
+        checkIdle();
+      }
+    };
+
+    void sendPing();
+    const interval = window.setInterval(checkIdle, 15 * 1000);
+    window.addEventListener('pointerdown', recordInteraction, { passive: true });
+    window.addEventListener('keydown', recordInteraction, { passive: true });
+    window.addEventListener('touchstart', recordInteraction, { passive: true });
+    window.addEventListener('scroll', recordInteraction, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('pointerdown', recordInteraction);
+      window.removeEventListener('keydown', recordInteraction);
+      window.removeEventListener('touchstart', recordInteraction);
+      window.removeEventListener('scroll', recordInteraction);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, logout]);
 
   const isAdmin = user?.role === 'ADMIN';
 

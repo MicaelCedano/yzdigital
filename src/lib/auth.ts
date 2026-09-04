@@ -8,6 +8,7 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 export const COOKIE_NAME = 'auth_session_token';
+export const WHOLESALER_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 
 export interface UserSession {
   id: string;
@@ -49,7 +50,23 @@ export async function getCurrentUser(): Promise<UserSession | null> {
     const cookieStore = cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
     if (!token) return null;
-    return await verifySessionToken(token);
+    const session = await verifySessionToken(token);
+    if (!session) return null;
+
+    // La expiración por inactividad aplica únicamente a cuentas mayoristas.
+    // Se valida contra la actividad persistida para que también cubra llamadas directas a la API.
+    if (session.role === 'WHOLESALER') {
+      const user = await prisma.user.findUnique({
+        where: { id: session.id },
+        select: { isActive: true, lastActiveAt: true },
+      });
+
+      if (!user?.isActive || !user.lastActiveAt || Date.now() - user.lastActiveAt.getTime() >= WHOLESALER_IDLE_TIMEOUT_MS) {
+        return null;
+      }
+    }
+
+    return session;
   } catch (error) {
     return null;
   }
