@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
+import { hasUsernameWhitespace, normalizeUsername } from '@/lib/username';
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanUsername = normalizeUsername(username);
+    if (!cleanUsername) {
+      return NextResponse.json(
+        { error: 'El nombre de usuario es obligatorio.' },
+        { status: 400 }
+      );
+    }
+    if (hasUsernameWhitespace(cleanUsername)) {
+      return NextResponse.json(
+        { error: 'El nombre de usuario no puede contener espacios.' },
+        { status: 400 }
+      );
+    }
     // El usuario inicia sesión con username; este valor solo satisface la
     // columna email heredada y no se muestra como correo de contacto.
     const cleanEmail = (email && email.trim()) ? email.trim().toLowerCase() : `${cleanUsername}@cuentas.yzdigital.local`;

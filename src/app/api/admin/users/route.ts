@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, verifySessionToken, COOKIE_NAME } from '@/lib/auth';
+import { hasUsernameWhitespace, normalizeUsername } from '@/lib/username';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const name = String(body.name || '').trim();
-    const username = String(body.username || '').trim().toLowerCase();
+    const username = normalizeUsername(body.username);
     // El acceso es por username. La columna email sigue siendo obligatoria
     // por compatibilidad con el esquema, pero no se le pide al administrador.
     const email = String(body.email || '').trim().toLowerCase() || `${username}@cuentas.yzdigital.local`;
@@ -35,6 +36,13 @@ export async function POST(request: Request) {
     if (!name || !username || password.length < 8) {
       return NextResponse.json(
         { error: 'Nombre, usuario y una contraseña de mínimo 8 caracteres son obligatorios.' },
+        { status: 400 }
+      );
+    }
+
+    if (hasUsernameWhitespace(username)) {
+      return NextResponse.json(
+        { error: 'El nombre de usuario no puede contener espacios.' },
         { status: 400 }
       );
     }
@@ -88,6 +96,27 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get('status'); // 'PENDING' | 'APPROVED' | 'REJECTED' | 'ONLINE'
+
+    if (searchParams.get('logsOnly') === 'true') {
+      const date = searchParams.get('date') || new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const start = new Date(`${date}T00:00:00-04:00`);
+      const page = Number(searchParams.get('page') || '1');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(start.getTime()) ||
+          new Date(start.getTime() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10) !== date ||
+          !Number.isSafeInteger(page) || page < 1 || page > 1000000) {
+        return NextResponse.json({ error: 'Fecha o página inválida.' }, { status: 400 });
+      }
+      const userId = searchParams.get('userId');
+      const where = {
+        createdAt: { gte: start, lt: new Date(start.getTime() + 24 * 60 * 60 * 1000) },
+        ...(userId ? { userId } : {}),
+      };
+      const [logs, total] = await Promise.all([
+        prisma.accessLog.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], skip: (page - 1) * 50, take: 50 }),
+        prisma.accessLog.count({ where }),
+      ]);
+      return NextResponse.json({ logs, total });
+    }
 
     // Obtener todos los usuarios
     const allUsers = await prisma.user.findMany({

@@ -72,6 +72,8 @@ interface StatsData {
   onlineNow: number;
 }
 
+const todayInSantoDomingo = () => new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 export default function AdminUsuariosPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const { success, error: toastError } = useToast();
@@ -80,6 +82,13 @@ export default function AdminUsuariosPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [stats, setStats] = useState<StatsData>({ total: 0, pending: 0, approved: 0, rejected: 0, onlineNow: 0 });
   const [accessLogs, setAccessLogs] = useState<AccessLogItem[]>([]);
+  const [logDate, setLogDate] = useState(todayInSantoDomingo);
+  const [logClient, setLogClient] = useState('');
+  const [logPage, setLogPage] = useState(1);
+  const [logTotal, setLogTotal] = useState(0);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState('');
+  const [logReload, setLogReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -100,7 +109,7 @@ export default function AdminUsuariosPage() {
       if (res.ok) {
         setUsers(data.users || []);
         if (data.stats) setStats(data.stats);
-        if (data.recentAccessLogs) setAccessLogs(data.recentAccessLogs);
+
       }
     } catch (err) {
       console.error(err);
@@ -124,6 +133,33 @@ export default function AdminUsuariosPage() {
       return () => clearInterval(interval);
     }
   }, [isAdmin, authLoading, router, fetchUsers]);
+
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'logs') return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const loadLogs = async () => {
+      setLogsLoading(true);
+      setLogsError('');
+      try {
+        const params = new URLSearchParams({ logsOnly: 'true', date: logDate, userId: logClient, page: String(logPage) });
+        const res = await fetch(`/api/admin/users?${params}`, { signal: controller.signal });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'No se pudo cargar el historial.');
+        if (!cancelled) {
+          setAccessLogs(data.logs);
+          setLogTotal(data.total);
+        }
+      } catch (err) {
+        if (!cancelled) setLogsError(err instanceof Error ? err.message : 'No se pudo cargar el historial.');
+      } finally {
+        if (!cancelled) setLogsLoading(false);
+      }
+    };
+    loadLogs();
+    const interval = setInterval(loadLogs, 15000);
+    return () => { cancelled = true; controller.abort(); clearInterval(interval); };
+  }, [isAdmin, activeTab, logDate, logClient, logPage, logReload]);
 
   // Cambiar estado de usuario (Aprobar / Rechazar)
   const handleUpdateStatus = async (userId: string, newStatus: 'APPROVED' | 'REJECTED' | 'PENDING', userName: string) => {
@@ -717,14 +753,35 @@ export default function AdminUsuariosPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h3 className="font-black text-sm text-slate-900">Historial de Accesos Recientes</h3>
-                <p className="text-xs text-slate-500">Registro cronológico de las últimas 20 entradas al sistema con IP y dispositivo.</p>
+                <h3 className="font-black text-sm text-slate-900">Historial de Accesos</h3>
+                <p className="text-xs text-slate-500">Consulta los accesos por fecha y cliente. Horario de República Dominicana.</p>
               </div>
             </div>
 
-            {accessLogs.length === 0 ? (
+            <div className="p-4 flex flex-col sm:flex-row sm:items-end gap-3 border-b border-slate-100">
+              <label className="text-xs font-bold text-slate-600">
+                Fecha
+                <input type="date" value={logDate} required onChange={(e) => { setLogDate(e.target.value || todayInSantoDomingo()); setLogPage(1); }} className="block mt-1 rounded-lg border border-slate-200 p-2 w-full" />
+              </label>
+              <label className="text-xs font-bold text-slate-600 flex-1 min-w-0">
+                Cliente
+                <select value={logClient} onChange={(e) => { setLogClient(e.target.value); setLogPage(1); }} className="block mt-1 rounded-lg border border-slate-200 p-2 w-full">
+                  <option value="">Todos los clientes / usuarios</option>
+                  {[...users].sort((a, b) => a.name.localeCompare(b.name, 'es')).map((client) => (
+                    <option key={client.id} value={client.id}>{client.name} (@{client.username}){client.companyName ? ` — ${client.companyName}` : ''}</option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" onClick={() => { setLogDate(todayInSantoDomingo()); setLogClient(''); setLogPage(1); setLogReload((n) => n + 1); }} className="rounded-lg bg-sky-50 text-sky-700 p-2 text-xs font-bold">Ver hoy</button>
+            </div>
+
+            {logsError ? (
+              <div role="alert" className="p-8 text-center text-rose-600 text-sm">{logsError}<button type="button" onClick={() => setLogReload((n) => n + 1)} className="ml-3 underline">Reintentar</button></div>
+            ) : logsLoading ? (
+              <div role="status" className="p-8 text-center text-slate-500 text-sm">Cargando historial…</div>
+            ) : accessLogs.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs font-semibold">
-                No hay registros de acceso todavía.
+                No hay accesos para la fecha y el cliente seleccionados.
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -746,13 +803,22 @@ export default function AdminUsuariosPage() {
                     </div>
 
                     <div className="text-right">
-                      <span className="font-bold text-slate-800 block">{formatDate(log.createdAt)}</span>
+                      <span className="font-bold text-slate-800 block">{new Date(log.createdAt).toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</span>
                       <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200 mt-0.5">
                         {log.action}
                       </span>
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {!logsError && !logsLoading && (
+              <div className="p-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <span>{logTotal} accesos · Página {logPage} de {Math.max(1, Math.ceil(logTotal / 50))}</span>
+                <div className="flex gap-3">
+                  <button type="button" disabled={logPage === 1} onClick={() => setLogPage((p) => p - 1)} className="font-bold text-sky-700 disabled:opacity-40">Anterior</button>
+                  <button type="button" disabled={logPage * 50 >= logTotal} onClick={() => setLogPage((p) => p + 1)} className="font-bold text-sky-700 disabled:opacity-40">Siguiente</button>
+                </div>
               </div>
             )}
           </div>
@@ -849,7 +915,9 @@ export default function AdminUsuariosPage() {
                 <input
                   required
                   value={adminForm.username}
-                  onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value })}
+                  onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value.replace(/\s/g, '') })}
+                  pattern="\S+"
+                  title="El nombre de usuario no puede contener espacios."
                   placeholder="Ej.: juanperez"
                   readOnly={Boolean(editingUser)}
                   className={`w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 ${editingUser ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-slate-50'}`}

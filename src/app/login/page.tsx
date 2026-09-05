@@ -1185,7 +1185,9 @@ function LoginFormContent() {
                         type="text"
                         required
                         value={regForm.username}
-                        onChange={(e) => setRegForm({ ...regForm, username: e.target.value })}
+                        onChange={(e) => setRegForm({ ...regForm, username: e.target.value.replace(/\s/g, '') })}
+                        pattern="\S+"
+                        title="El nombre de usuario no puede contener espacios."
                         placeholder="Ej: juanperez"
                         className="w-full px-3.5 py-2.5 bg-slate-800 border border-white/15 rounded-xl text-white text-xs outline-none focus:border-[#38bdf8] focus:ring-2 focus:ring-sky-400/30 transition-all placeholder:text-slate-500 font-mono"
                       />
