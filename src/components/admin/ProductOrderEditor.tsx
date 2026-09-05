@@ -14,7 +14,7 @@ export function ProductOrderEditor({ products, categories, onSaved }: {
   const [dragged, setDragged] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { success, error } = useToast();
-  const original = useMemo(() => products.filter(p => p.categoryId === categoryId).sort(compareCatalogProducts), [products, categoryId]);
+  const original = useMemo(() => products.filter(p => p.categoryId === categoryId && p.isActive && p.inActiveList).sort(compareCatalogProducts), [products, categoryId]);
   const rows = draft ?? original;
 
   function move(from: number, to: number) {
@@ -51,7 +51,7 @@ export function ProductOrderEditor({ products, categories, onSaved }: {
     <section className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
       <div>
         <h2 className="text-sm font-black text-slate-900">Orden de modelos</h2>
-        <p className="text-xs text-slate-500 mt-1">Elige una marca / grupo y acomoda los modelos con las flechas o arrastrándolos. Este orden se mostrará en la lista de precios.</p>
+        <p className="text-xs text-slate-500 mt-1">Elige una marca, arrastra sus modelos o selecciona la posición que quieras. Guarda al terminar.</p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-xs font-bold text-slate-700">Marca / grupo
@@ -61,22 +61,24 @@ export function ProductOrderEditor({ products, categories, onSaved }: {
         </label>
         <span className="text-xs text-slate-500">{draft ? 'Cambios sin guardar' : original.some(p => p.sortOrder < 0) ? 'Orden personalizado' : 'Orden por precio'}</span>
       </div>
-      <div className="max-h-96 overflow-y-auto space-y-2">
-        {rows.length === 0 && <p className="text-sm text-slate-500">Este grupo todavía no tiene productos.</p>}
+      <div className="space-y-2">
+        {rows.length === 0 && <p className="text-sm text-slate-500">Este grupo no tiene modelos en la lista activa.</p>}
         {rows.map((p, index) => (
           <div key={p.id} draggable={!saving} onDragStart={() => setDragged(p.id)} onDragEnd={() => setDragged(null)} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); move(rows.findIndex(row => row.id === dragged), index); setDragged(null); }} className={`flex items-center gap-2 rounded-xl border p-2 ${dragged === p.id ? 'bg-sky-50 border-sky-300' : 'bg-slate-50 border-slate-200'}`}>
             <GripVertical aria-hidden="true" className="w-4 h-4 shrink-0 text-slate-400" />
-            <span className="text-xs text-slate-500 w-6 shrink-0">{index + 1}</span>
+            <select aria-label={`Posición de ${p.model} ${p.capacity}`} value={index} disabled={saving} onChange={e => move(index, Number(e.target.value))} className="w-14 shrink-0 rounded-lg border border-slate-300 bg-white p-1.5 text-xs">
+              {rows.map((row, position) => <option key={row.id} value={position}>{position + 1}</option>)}
+            </select>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-900 break-words">{p.brand} {p.model} · {p.capacity}{p.color ? ` · ${p.color}` : ''}</p>
-              <p className="text-[11px] text-slate-500">{p.sku}{!p.inActiveList ? ' · Fuera de la lista activa' : ''}</p>
+              <p className="text-[11px] text-slate-500">{p.sku}</p>
             </div>
             <button type="button" aria-label={`Subir ${p.model} ${p.capacity}`} disabled={saving || index === 0} onClick={() => move(index, index - 1)} className="p-2 rounded-lg hover:bg-white disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
             <button type="button" aria-label={`Bajar ${p.model} ${p.capacity}`} disabled={saving || index === rows.length - 1} onClick={() => move(index, index + 1)} className="p-2 rounded-lg hover:bg-white disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
           </div>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="sticky bottom-0 flex flex-wrap gap-2 border-t bg-white py-3">
         <button type="button" disabled={saving || !draft} onClick={() => save(false)} className="rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{saving ? 'Guardando...' : 'Guardar orden de modelos'}</button>
         <button type="button" disabled={saving || !draft} onClick={() => setDraft(null)} className="rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-40">Cancelar cambios</button>
         <button type="button" disabled={saving || !rows.length || (!draft && !original.some(p => p.sortOrder < 0))} onClick={() => save(true)} className="rounded-xl border px-4 py-2 text-xs font-bold disabled:opacity-40">Volver al orden por precio</button>

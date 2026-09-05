@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'El orden enviado no es válido.' }, { status: 400 });
     }
     const saved = await prisma.$transaction(async (tx) => {
-      const products = await tx.product.findMany({ where: { categoryId, isActive: true }, select: { id: true } });
+      const products = await tx.product.findMany({ where: { categoryId, isActive: true, inActiveList: true }, select: { id: true } });
       const ids = new Set(productIds);
       if (products.length !== ids.size || products.some((p) => !ids.has(p.id))) return false;
       for (const [index, id] of (productIds as string[]).entries()) {

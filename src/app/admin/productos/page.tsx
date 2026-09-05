@@ -5,8 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Product, Category } from '@/types';
 import { ProductFormModal } from '@/components/admin/ProductFormModal';
-import { ProductOrderEditor } from '@/components/admin/ProductOrderEditor';
-import { BrandColorCustomizer } from '@/components/admin/BrandColorCustomizer';
+import Link from 'next/link';
 import {
   Plus,
   Search,
@@ -16,12 +15,8 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  ArrowUpDown,
   Filter,
   Package,
-  ArrowDown,
-  ArrowUp,
-  Save,
 } from 'lucide-react';
 
 export default function AdminProductosPage() {
@@ -30,9 +25,6 @@ export default function AdminProductosPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [savingCategoryOrder, setSavingCategoryOrder] = useState(false);
-  const [categoryOrderDirty, setCategoryOrderDirty] = useState(false);
-  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
@@ -112,69 +104,6 @@ export default function AdminProductosPage() {
     setIsModalOpen(true);
   };
 
-  const orderedCategories = useMemo(
-    () => [...categories].sort((a, b) => a.sortOrder - b.sortOrder),
-    [categories]
-  );
-
-  const brandsInCatalog = useMemo(
-    () => Array.from(new Set(products.map((product) => product.brand.toUpperCase()))).sort(),
-    [products]
-  );
-
-  const moveCategory = (categoryId: string, direction: -1 | 1) => {
-    const currentIndex = orderedCategories.findIndex((category) => category.id === categoryId);
-    const nextIndex = currentIndex + direction;
-    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= orderedCategories.length || savingCategoryOrder) return;
-
-    const nextCategories = [...orderedCategories];
-    [nextCategories[currentIndex], nextCategories[nextIndex]] = [
-      nextCategories[nextIndex],
-      nextCategories[currentIndex],
-    ];
-    setCategories(nextCategories.map((category, index) => ({ ...category, sortOrder: (index + 1) * 10 })));
-    setCategoryOrderDirty(true);
-  };
-
-  const handleCategoryDrop = (targetCategoryId: string) => {
-    if (!draggedCategoryId || draggedCategoryId === targetCategoryId || savingCategoryOrder) return;
-
-    const sourceIndex = orderedCategories.findIndex((category) => category.id === draggedCategoryId);
-    const targetIndex = orderedCategories.findIndex((category) => category.id === targetCategoryId);
-    if (sourceIndex < 0 || targetIndex < 0) return;
-
-    const nextCategories = [...orderedCategories];
-    const [draggedCategory] = nextCategories.splice(sourceIndex, 1);
-    nextCategories.splice(targetIndex, 0, draggedCategory);
-    setCategories(nextCategories.map((category, index) => ({ ...category, sortOrder: (index + 1) * 10 })));
-    setCategoryOrderDirty(true);
-    setDraggedCategoryId(null);
-  };
-
-  const saveCategoryOrder = async () => {
-    if (!categoryOrderDirty || savingCategoryOrder) return;
-    setSavingCategoryOrder(true);
-
-    try {
-      const res = await fetch('/api/categories/order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ categoryIds: orderedCategories.map((category) => category.id) }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'No se pudo guardar el orden');
-      }
-      success('Orden de grupos guardado');
-      setCategoryOrderDirty(false);
-    } catch (err: any) {
-      error(err.message);
-      fetchProducts();
-    } finally {
-      setSavingCategoryOrder(false);
-    }
-  };
-
   // Filtrado
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -224,6 +153,8 @@ export default function AdminProductosPage() {
           </p>
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+        <Link href="/admin/organizar-catalogo" className="rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50">Organizar catálogo</Link>
         <button
           onClick={handleOpenNew}
           className="flex items-center gap-2 px-5 py-2.5 bg-[#B71C1C] hover:bg-red-800 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-red-600/20 transition-all self-start sm:self-auto"
@@ -231,6 +162,7 @@ export default function AdminProductosPage() {
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Nuevo Producto</span>
         </button>
+        </div>
       </div>
 
       {/* Tabs y Filtros */}
@@ -301,70 +233,6 @@ export default function AdminProductosPage() {
         </div>
       </div>
 
-      {/* Orden de grupos */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div>
-            <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-sky-600" /> Orden de marcas / grupos del catálogo
-            </h2>
-            <p className="text-[11px] text-slate-500 mt-1">Arrastra los grupos, acomódalos todos y guarda al final.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <BrandColorCustomizer brands={brandsInCatalog} />
-            <button
-              type="button"
-              onClick={saveCategoryOrder}
-              disabled={!categoryOrderDirty || savingCategoryOrder}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-            >
-              <Save className="w-3.5 h-3.5" />
-              {savingCategoryOrder ? 'Guardando...' : 'Guardar orden'}
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {orderedCategories.map((category, index) => (
-            <div
-              key={category.id}
-              draggable={!savingCategoryOrder}
-              onDragStart={() => setDraggedCategoryId(category.id)}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => handleCategoryDrop(category.id)}
-              onDragEnd={() => setDraggedCategoryId(null)}
-              className={`inline-flex cursor-grab items-center gap-1 rounded-xl border bg-slate-50 pl-3 pr-1 py-1.5 active:cursor-grabbing ${
-                draggedCategoryId === category.id ? 'border-sky-400 bg-sky-50 opacity-60' : 'border-slate-200'
-              }`}
-              title="Arrastra este grupo para moverlo"
-            >
-              <span className="text-xs font-black uppercase text-slate-800">{category.name}</span>
-              <button
-                type="button"
-                onClick={() => moveCategory(category.id, -1)}
-                disabled={index === 0 || savingCategoryOrder}
-                className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
-                aria-label={`Subir ${category.name}`}
-                title="Subir"
-              >
-                <ArrowUp className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => moveCategory(category.id, 1)}
-                disabled={index === orderedCategories.length - 1 || savingCategoryOrder}
-                className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
-                aria-label={`Bajar ${category.name}`}
-                title="Bajar"
-              >
-                <ArrowDown className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {!loading && <ProductOrderEditor products={products} categories={orderedCategories} onSaved={fetchProducts} />}
-
       {/* Tabla de Productos */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {loading ? (
@@ -431,7 +299,10 @@ export default function AdminProductosPage() {
 
                     {/* Precio */}
                     <td className="py-2.5 px-4 font-black text-base text-[#B71C1C]">
-                      RD$ {(p.currentPrice?.priceTier1 || 0).toLocaleString('en-US')}
+                      <button type="button" onClick={() => handleOpenEdit(p)} className="inline-flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-red-50" title="Editar producto y precio" aria-label={`Editar precio de ${p.brand} ${p.model}`}>
+                        RD$ {(p.currentPrice?.priceTier1 || 0).toLocaleString('en-US')}
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
 
                     {/* Toggle En Lista Activa */}
