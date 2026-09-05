@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Product, Category } from '@/types';
 import { ProductFormModal } from '@/components/admin/ProductFormModal';
+import { ProductOrderEditor } from '@/components/admin/ProductOrderEditor';
 import { BrandColorCustomizer } from '@/components/admin/BrandColorCustomizer';
 import {
   Plus,
@@ -305,7 +306,7 @@ export default function AdminProductosPage() {
         <div className="flex items-center justify-between gap-3 mb-3">
           <div>
             <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-sky-600" /> Orden de grupos del catálogo
+              <ArrowUpDown className="w-4 h-4 text-sky-600" /> Orden de marcas / grupos del catálogo
             </h2>
             <p className="text-[11px] text-slate-500 mt-1">Arrastra los grupos, acomódalos todos y guarda al final.</p>
           </div>
@@ -340,7 +341,7 @@ export default function AdminProductosPage() {
               <button
                 type="button"
                 onClick={() => moveCategory(category.id, -1)}
-                disabled={index === 0 || savingCategoryOrder || categoryOrderDirty}
+                disabled={index === 0 || savingCategoryOrder}
                 className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
                 aria-label={`Subir ${category.name}`}
                 title="Subir"
@@ -350,7 +351,7 @@ export default function AdminProductosPage() {
               <button
                 type="button"
                 onClick={() => moveCategory(category.id, 1)}
-                disabled={index === orderedCategories.length - 1 || savingCategoryOrder || categoryOrderDirty}
+                disabled={index === orderedCategories.length - 1 || savingCategoryOrder}
                 className="rounded-lg p-1 text-slate-500 hover:bg-white hover:text-sky-700 disabled:opacity-30"
                 aria-label={`Bajar ${category.name}`}
                 title="Bajar"
@@ -361,6 +362,8 @@ export default function AdminProductosPage() {
           ))}
         </div>
       </div>
+
+      {!loading && <ProductOrderEditor products={products} categories={orderedCategories} onSaved={fetchProducts} />}
 
       {/* Tabla de Productos */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

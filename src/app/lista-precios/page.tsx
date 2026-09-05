@@ -1,5 +1,7 @@
 'use client';
 
+import { compareCatalogProducts } from '@/lib/catalog-order';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -100,23 +102,7 @@ export default function ListaPreciosPage() {
     });
 
     map.forEach((list) => {
-      list.sort((a, b) => {
-        const priceA = a.currentPrice?.priceTier1;
-        const priceB = b.currentPrice?.priceTier1;
-        const hasPriceA = typeof priceA === 'number' && priceA > 0;
-        const hasPriceB = typeof priceB === 'number' && priceB > 0;
-
-        // Los productos sin precio se mantienen al final de su marca.
-        if (hasPriceA !== hasPriceB) return hasPriceA ? -1 : 1;
-        if (hasPriceA && hasPriceB && priceA !== priceB) {
-          return priceA - priceB;
-        }
-
-        // Desempate estable para productos con el mismo precio.
-        const sortOrderDifference = (a.sortOrder || 0) - (b.sortOrder || 0);
-        if (sortOrderDifference !== 0) return sortOrderDifference;
-        return a.model.localeCompare(b.model, 'es');
-      });
+      list.sort(compareCatalogProducts);
     });
 
     return map;
