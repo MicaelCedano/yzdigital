@@ -57,12 +57,16 @@ export async function PUT(
       inActiveList,
       isActive,
       categoryId: requestedCategoryId,
+      sku,
     } = data;
 
     const existing = await prisma.product.findUnique({
       where: { id },
       include: { prices: true },
-    });
+    }) || (sku ? await prisma.product.findFirst({
+      where: { sku: String(sku).trim() },
+      include: { prices: true },
+    }) : null);
 
     if (!existing) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
@@ -93,9 +97,10 @@ export async function PUT(
       categoryId = cat.id;
     }
 
+    const productId = existing.id;
     const updated = await prisma.$transaction(async (tx) => {
       const prod = await tx.product.update({
-        where: { id },
+        where: { id: productId },
         data: {
           brand: brandUpper,
           model: modelTrim,
@@ -114,7 +119,7 @@ export async function PUT(
           await tx.productPrice.upsert({
             where: {
               productId_priceListId: {
-                productId: id,
+                productId: productId,
                 priceListId: defaultList.id,
               },
             },
@@ -126,7 +131,7 @@ export async function PUT(
               updatedById: admin.id,
             },
             create: {
-              productId: id,
+              productId: productId,
               priceListId: defaultList.id,
               currency: defaultList.currency || 'DOP',
               priceTier1: priceNum,

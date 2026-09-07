@@ -95,6 +95,7 @@ export function ProductFormModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          sku: productToEdit?.sku,
           price: priceTier1,
           priceTier2: automaticTiers.tier2 ? null : Number(formData.priceTier2) || 0,
           priceTier3: automaticTiers.tier3 ? null : Number(formData.priceTier3) || 0,
