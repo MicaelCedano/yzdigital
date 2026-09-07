@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
+import { toImageUrl } from '@/lib/image-url';
 
 export async function GET(request: Request) {
   try {
@@ -166,7 +167,7 @@ export async function POST(request: Request) {
           model: modelTrim,
           capacity: capacityTrim,
           sku,
-          imageUrl: imageUrl || null,
+          imageUrl: toImageUrl(imageUrl) || null,
           inActiveList: inActiveList !== undefined ? Boolean(inActiveList) : true,
           stock: 20,
           isActive: true,

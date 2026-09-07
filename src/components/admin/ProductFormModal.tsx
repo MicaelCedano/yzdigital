@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/layout/Modal';
 import { Category, Product } from '@/types';
 import { useToast } from '@/context/ToastContext';
+import { toImageUrl } from '@/lib/image-url';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -265,9 +266,12 @@ export function ProductFormModal({
           />
           {formData.imageUrl && (
             <div className="mt-2 w-16 h-16 rounded-lg border border-slate-200 overflow-hidden bg-white p-1">
-              <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-contain" />
+              <img src={toImageUrl(formData.imageUrl)} alt="Preview" className="w-full h-full object-contain" />
             </div>
           )}
+          <p className="mt-1 text-[11px] text-slate-500">
+            Acepta enlaces directos de imagen y enlaces compartidos de Google Drive.
+          </p>
         </div>
 
         {/* 6. En Lista Activa Toggle */}

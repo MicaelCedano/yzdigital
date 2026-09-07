@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireAdmin } from '@/lib/auth';
+import { toImageUrl } from '@/lib/image-url';
 
 export async function GET(
   request: Request,
@@ -99,7 +100,7 @@ export async function PUT(
           brand: brandUpper,
           model: modelTrim,
           capacity: capacityTrim,
-          imageUrl: imageUrl !== undefined ? imageUrl : existing.imageUrl,
+          imageUrl: imageUrl !== undefined ? toImageUrl(imageUrl) || null : existing.imageUrl,
           inActiveList: inActiveList !== undefined ? Boolean(inActiveList) : existing.inActiveList,
           isActive: isActive !== undefined ? Boolean(isActive) : existing.isActive,
           categoryId,
