@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
@@ -89,6 +89,7 @@ export default function AdminUsuariosPage() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState('');
   const [logReload, setLogReload] = useState(0);
+  const logsLengthRef = useRef(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -138,8 +139,10 @@ export default function AdminUsuariosPage() {
     if (!isAdmin || activeTab !== 'logs') return;
     let cancelled = false;
     const controller = new AbortController();
-    const loadLogs = async () => {
-      setLogsLoading(true);
+    const loadLogs = async (showLoading = false) => {
+      // Las recargas automáticas no deben desmontar visualmente el historial.
+      // Solo mostramos el estado de carga en la primera consulta o tras un error.
+      if (showLoading || logsLengthRef.current === 0) setLogsLoading(true);
       setLogsError('');
       try {
         const params = new URLSearchParams({ logsOnly: 'true', date: logDate, userId: logClient, page: String(logPage) });
@@ -148,6 +151,7 @@ export default function AdminUsuariosPage() {
         if (!res.ok) throw new Error(data.error || 'No se pudo cargar el historial.');
         if (!cancelled) {
           setAccessLogs(data.logs);
+          logsLengthRef.current = data.logs.length;
           setLogTotal(data.total);
         }
       } catch (err) {
@@ -156,8 +160,8 @@ export default function AdminUsuariosPage() {
         if (!cancelled) setLogsLoading(false);
       }
     };
-    loadLogs();
-    const interval = setInterval(loadLogs, 15000);
+    loadLogs(true);
+    const interval = setInterval(() => loadLogs(), 15000);
     return () => { cancelled = true; controller.abort(); clearInterval(interval); };
   }, [isAdmin, activeTab, logDate, logClient, logPage, logReload]);
 
