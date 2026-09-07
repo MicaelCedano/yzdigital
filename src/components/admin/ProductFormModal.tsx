@@ -84,13 +84,9 @@ export function ProductFormModal({
     setLoading(true);
 
     try {
-      const canonicalOrigin =
-        typeof window !== 'undefined' && window.location.hostname === 'yzdigital.com.do'
-          ? 'https://www.yzdigital.com.do'
-          : '';
       const url = productToEdit
-        ? `${canonicalOrigin}/api/products/${productToEdit.id}`
-        : `${canonicalOrigin}/api/products`;
+        ? `/api/products/${productToEdit.id}`
+        : '/api/products';
       const method = productToEdit ? 'PUT' : 'POST';
       const priceTier1 = Number(formData.price) || 0;
 
