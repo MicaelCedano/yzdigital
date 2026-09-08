@@ -90,6 +90,7 @@ export default function AdminUsuariosPage() {
   const [logsError, setLogsError] = useState('');
   const [logReload, setLogReload] = useState(0);
   const logsLengthRef = useRef(0);
+  const logsSignatureRef = useRef('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -150,9 +151,14 @@ export default function AdminUsuariosPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'No se pudo cargar el historial.');
         if (!cancelled) {
-          setAccessLogs(data.logs);
-          logsLengthRef.current = data.logs.length;
-          setLogTotal(data.total);
+          const nextLogs = data.logs || [];
+          const nextSignature = JSON.stringify({ logs: nextLogs, total: data.total });
+          if (nextSignature !== logsSignatureRef.current) {
+            setAccessLogs(nextLogs);
+            logsLengthRef.current = nextLogs.length;
+            setLogTotal(data.total);
+            logsSignatureRef.current = nextSignature;
+          }
         }
       } catch (err) {
         if (!cancelled) setLogsError(err instanceof Error ? err.message : 'No se pudo cargar el historial.');
