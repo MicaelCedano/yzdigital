@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpDown, ArrowUp, ArrowDown, Save } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Plus, Save } from 'lucide-react';
 import type { Product, Category } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { ProductOrderEditor } from '@/components/admin/ProductOrderEditor';
@@ -15,6 +15,8 @@ export default function OrganizarCatalogoPage() {
   const [savingCategoryOrder, setSavingCategoryOrder] = useState(false);
   const [categoryOrderDirty, setCategoryOrderDirty] = useState(false);
   const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [creatingCategory, setCreatingCategory] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   async function fetchProducts() {
@@ -33,8 +35,8 @@ export default function OrganizarCatalogoPage() {
   }
   useEffect(() => { fetchProducts(); }, []);
   const orderedCategories = useMemo(
-    () => categories.filter(c => products.some(p => p.categoryId === c.id)).sort((a, b) => a.sortOrder - b.sortOrder),
-    [categories, products]
+    () => [...categories].sort((a, b) => a.sortOrder - b.sortOrder),
+    [categories]
   );
 
   const brandsInCatalog = useMemo(
@@ -98,14 +100,66 @@ export default function OrganizarCatalogoPage() {
     }
   };
 
+  const createCategory = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = newCategoryName.trim();
+    if (!name || creatingCategory) return;
+
+    setCreatingCategory(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || 'No se pudo crear el grupo.');
+
+      setCategories((current) => [...current, data.category]);
+      setNewCategoryName('');
+      success(`Grupo ${data.category.name} creado. Ya puedes asignarle productos.`);
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'No se pudo crear el grupo.');
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
+
 
   return <div className="mx-auto max-w-5xl space-y-4 pb-12">
     <Link href="/admin/productos" className="inline-flex rounded-xl border bg-white px-4 py-2 text-sm font-bold text-sky-700">← Volver a productos y precios</Link>
     <div>
       <h1 className="text-2xl font-black text-slate-900">Organizar catálogo</h1>
-      <p className="text-sm text-slate-500 mt-1">Solo aparecen las marcas y los modelos de la lista activa. Acomódalos como quieres que los vean tus clientes.</p>
+      <p className="text-sm text-slate-500 mt-1">Aquí puedes crear los grupos y acomodar los modelos de la lista activa como quieres que los vean tus clientes.</p>
     </div>
     {loading ? <p role="status">Cargando catálogo...</p> : loadError ? <button onClick={fetchProducts} className="rounded-xl bg-sky-600 px-4 py-2 text-white">Reintentar</button> : <>
+      <form onSubmit={createCategory} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3">
+          <h2 className="text-sm font-black text-slate-900">Crear grupo de catálogo</h2>
+          <p className="mt-1 text-xs text-slate-500">Ejemplo: iPhone. Después podrás elegir este grupo al crear o editar un producto.</p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label htmlFor="new-category-name" className="sr-only">Nombre del grupo</label>
+          <input
+            id="new-category-name"
+            value={newCategoryName}
+            onChange={(event) => setNewCategoryName(event.target.value)}
+            disabled={creatingCategory}
+            maxLength={60}
+            placeholder="Nombre del grupo, por ejemplo iPhone"
+            className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:bg-slate-100"
+          />
+          <button
+            type="submit"
+            disabled={!newCategoryName.trim() || creatingCategory}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            <Plus className="h-4 w-4" />
+            {creatingCategory ? 'Creando...' : 'Crear grupo'}
+          </button>
+        </div>
+      </form>
+
       {/* Orden de grupos */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
