@@ -1,5 +1,6 @@
 # Fondos del inicio de sesión
 
+- `pixabay-sea-water-321023.mp4`: [El mar, el agua, naturaleza](https://pixabay.com/es/videos/el-mar-el-agua-naturaleza-l%C3%ADquido-321023/), de TatianaTz.
 - `pixabay-abstract-motion-14668.mp4`: [Resumen, movimiento, antecedentes](https://pixabay.com/es/videos/resumen-movimiento-antecedentes-14668/), de jeremiah7.
 - `pixabay-cubes.mp4`: [Cuadrícula, cubos](https://pixabay.com/es/videos/cuadr%C3%ADcula-cubos-149701/), de julientromeur.
 - `ai-cyber-network.webp` y `ai-glass-cubes.webp`: fondos originales generados para YZ DIGITAL.

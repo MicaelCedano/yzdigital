@@ -10,6 +10,11 @@ type LoginBackground = {
 
 const LOGIN_BACKGROUNDS: readonly LoginBackground[] = [
   {
+    id: 'pixabay-sea-water-321023',
+    kind: 'video',
+    src: '/login-backgrounds/pixabay-sea-water-321023.mp4',
+  },
+  {
     id: 'pixabay-abstract-motion-14668',
     kind: 'video',
     src: '/login-backgrounds/pixabay-abstract-motion-14668.mp4',
