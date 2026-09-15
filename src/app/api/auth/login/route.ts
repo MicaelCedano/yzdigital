@@ -2,6 +2,28 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, createSessionToken, COOKIE_NAME } from '@/lib/auth';
+import { ensureAccessLogLocationSchema } from '@/lib/ensure-access-log-location-schema';
+
+function readLocationHeader(headers: Headers, name: string, maxLength = 120) {
+  const rawValue = headers.get(name)?.trim();
+  if (!rawValue) return null;
+
+  try {
+    return decodeURIComponent(rawValue).slice(0, maxLength);
+  } catch {
+    return rawValue.slice(0, maxLength);
+  }
+}
+
+function readCoordinate(headers: Headers, name: string, min: number, max: number) {
+  const rawValue = headers.get(name);
+  if (!rawValue) return null;
+
+  const coordinate = Number(rawValue);
+  return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
+    ? String(coordinate)
+    : null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -72,6 +94,11 @@ export async function POST(request: Request) {
                       '127.0.0.1';
     const currentUserAgent = request.headers.get('user-agent') || 'Dispositivo Web';
     const currentDeviceFingerprint = `${currentUserAgent.slice(0, 100)}|${currentIp}`;
+    const locationCity = readLocationHeader(request.headers, 'x-vercel-ip-city');
+    const locationRegion = readLocationHeader(request.headers, 'x-vercel-ip-country-region');
+    const locationCountry = readLocationHeader(request.headers, 'x-vercel-ip-country', 2)?.toUpperCase() || null;
+    const locationLatitude = readCoordinate(request.headers, 'x-vercel-ip-latitude', -90, 90);
+    const locationLongitude = readCoordinate(request.headers, 'x-vercel-ip-longitude', -180, 180);
 
     if (user.role !== 'ADMIN') {
       const hasBoundDevice = Boolean(user.lockedDevice);
@@ -105,6 +132,8 @@ export async function POST(request: Request) {
     // Actualizar última conexión, vinculación de dispositivo y contador de accesos
     const now = new Date();
     try {
+      await ensureAccessLogLocationSchema();
+
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -126,6 +155,11 @@ export async function POST(request: Request) {
           action: 'LOGIN',
           ipAddress: currentIp,
           userAgent: currentUserAgent,
+          locationCity,
+          locationRegion,
+          locationCountry,
+          locationLatitude,
+          locationLongitude,
         },
       });
     } catch (e) {

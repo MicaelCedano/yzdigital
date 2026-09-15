@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, verifySessionToken, COOKIE_NAME } from '@/lib/auth';
 import { hasUsernameWhitespace, normalizeUsername } from '@/lib/username';
+import { ensureAccessLogLocationSchema } from '@/lib/ensure-access-log-location-schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,8 @@ export async function GET(request: Request) {
     if (!session || session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Acceso exclusivo para administradores' }, { status: 403 });
     }
+
+    await ensureAccessLogLocationSchema();
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get('status'); // 'PENDING' | 'APPROVED' | 'REJECTED' | 'ONLINE'

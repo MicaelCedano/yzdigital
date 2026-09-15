@@ -40,15 +40,20 @@ model User {
 }
 
 model AccessLog {
-  id        String   @id @default(cuid())
-  userId    String
-  username  String
-  name      String
-  role      String
-  action    String   @default("LOGIN") // "LOGIN" | "HEARTBEAT" | "LOGOUT"
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  userId            String
+  username          String
+  name              String
+  role              String
+  action            String   @default("LOGIN") // "LOGIN" | "HEARTBEAT" | "LOGOUT"
+  ipAddress         String?
+  userAgent         String?
+  locationCity      String?
+  locationRegion    String?
+  locationCountry   String?
+  locationLatitude  String?
+  locationLongitude String?
+  createdAt         DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

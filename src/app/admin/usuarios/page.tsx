@@ -61,6 +61,11 @@ interface AccessLogItem {
   action: string;
   ipAddress: string | null;
   userAgent: string | null;
+  locationCity: string | null;
+  locationRegion: string | null;
+  locationCountry: string | null;
+  locationLatitude: string | null;
+  locationLongitude: string | null;
   createdAt: string;
 }
 
@@ -73,6 +78,19 @@ interface StatsData {
 }
 
 const todayInSantoDomingo = () => new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+const countryNames = typeof Intl.DisplayNames === 'function'
+  ? new Intl.DisplayNames(['es'], { type: 'region' })
+  : null;
+
+const formatAccessLocation = (log: AccessLogItem) => {
+  const country = log.locationCountry
+    ? countryNames?.of(log.locationCountry) || log.locationCountry
+    : null;
+  return [log.locationCity, log.locationRegion, country]
+    .filter((part, index, parts): part is string => Boolean(part) && parts.indexOf(part) === index)
+    .join(', ');
+};
 
 export default function AdminUsuariosPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -795,31 +813,51 @@ export default function AdminUsuariosPage() {
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {accessLogs.map((log) => (
-                  <div key={log.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black flex items-center justify-center text-xs">
-                        {log.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900">
-                          {log.name}{' '}
-                          <span className="text-slate-400 font-normal">(@{log.username})</span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">
-                          {log.ipAddress ? `IP: ${log.ipAddress} • ` : ''}{log.userAgent || 'Navegador Web'}
-                        </div>
-                      </div>
-                    </div>
+                {accessLogs.map((log) => {
+                  const location = formatAccessLocation(log);
+                  const mapUrl = log.locationLatitude && log.locationLongitude
+                    ? `https://www.google.com/maps?q=${encodeURIComponent(`${log.locationLatitude},${log.locationLongitude}`)}`
+                    : null;
 
-                    <div className="text-right">
-                      <span className="font-bold text-slate-800 block">{new Date(log.createdAt).toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</span>
-                      <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200 mt-0.5">
-                        {log.action}
-                      </span>
+                  return (
+                    <div key={log.id} className="p-3.5 flex items-start justify-between gap-3 hover:bg-slate-50 text-xs">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black flex items-center justify-center text-xs">
+                          {log.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-900">
+                            {log.name}{' '}
+                            <span className="text-slate-400 font-normal">(@{log.username})</span>
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-sky-700">
+                            <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
+                            {location ? (
+                              <span>
+                                {location}
+                                {mapUrl ? (
+                                  <>{' · '}<a href={mapUrl} target="_blank" rel="noreferrer" className="underline hover:text-sky-900">Ver mapa aproximado</a></>
+                                ) : null}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Ubicación no disponible</span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">
+                            {log.ipAddress ? `IP: ${log.ipAddress} • ` : ''}{log.userAgent || 'Navegador Web'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="font-bold text-slate-800 block">{new Date(log.createdAt).toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo' })}</span>
+                        <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200 mt-0.5">
+                          {log.action}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             {!logsError && !logsLoading && (
