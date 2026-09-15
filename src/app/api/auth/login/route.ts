@@ -4,27 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword, createSessionToken, COOKIE_NAME } from '@/lib/auth';
 import { ensureAccessLogLocationSchema } from '@/lib/ensure-access-log-location-schema';
 
-function readLocationHeader(headers: Headers, name: string, maxLength = 120) {
-  const rawValue = headers.get(name)?.trim();
-  if (!rawValue) return null;
-
-  try {
-    return decodeURIComponent(rawValue).slice(0, maxLength);
-  } catch {
-    return rawValue.slice(0, maxLength);
-  }
-}
-
-function readCoordinate(headers: Headers, name: string, min: number, max: number) {
-  const rawValue = headers.get(name);
-  if (!rawValue) return null;
-
-  const coordinate = Number(rawValue);
-  return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
-    ? String(coordinate)
-    : null;
-}
-
 function readBodyCoordinate(value: unknown, min: number, max: number) {
   const coordinate = typeof value === 'number' ? value : Number.NaN;
   return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
@@ -110,20 +89,22 @@ export async function POST(request: Request) {
     const currentDeviceFingerprint = `${currentUserAgent.slice(0, 100)}|${currentIp}`;
     const deviceLatitude = readBodyCoordinate(location?.latitude, -90, 90);
     const deviceLongitude = readBodyCoordinate(location?.longitude, -180, 180);
-    const hasDeviceLocation = Boolean(deviceLatitude && deviceLongitude);
-    const locationCity = hasDeviceLocation ? null : readLocationHeader(request.headers, 'x-vercel-ip-city');
-    const locationRegion = hasDeviceLocation ? null : readLocationHeader(request.headers, 'x-vercel-ip-country-region');
-    const locationCountry = hasDeviceLocation
-      ? null
-      : readLocationHeader(request.headers, 'x-vercel-ip-country', 2)?.toUpperCase() || null;
-    const locationLatitude = deviceLatitude || readCoordinate(request.headers, 'x-vercel-ip-latitude', -90, 90);
-    const locationLongitude = deviceLongitude || readCoordinate(request.headers, 'x-vercel-ip-longitude', -180, 180);
-    const locationSource = hasDeviceLocation
-      ? 'DEVICE'
-      : locationCity || locationRegion || locationCountry || locationLatitude || locationLongitude
-      ? 'IP'
-      : null;
-    const locationAccuracy = hasDeviceLocation ? readLocationAccuracy(location?.accuracy) : null;
+    const locationAccuracy = readLocationAccuracy(location?.accuracy);
+    const hasPreciseDeviceLocation = Boolean(
+      deviceLatitude &&
+      deviceLongitude &&
+      locationAccuracy !== null &&
+      Number(locationAccuracy) <= 500
+    );
+
+    if (!hasPreciseDeviceLocation) {
+      return NextResponse.json(
+        {
+          error: '📍 Por seguridad, debes activar y permitir la ubicación precisa para usar YZ DIGITAL. Verifica el permiso de ubicación e inténtalo nuevamente.',
+        },
+        { status: 428 }
+      );
+    }
 
     if (user.role !== 'ADMIN') {
       const hasBoundDevice = Boolean(user.lockedDevice);
@@ -180,12 +161,12 @@ export async function POST(request: Request) {
           action: 'LOGIN',
           ipAddress: currentIp,
           userAgent: currentUserAgent,
-          locationCity,
-          locationRegion,
-          locationCountry,
-          locationLatitude,
-          locationLongitude,
-          locationSource,
+          locationCity: null,
+          locationRegion: null,
+          locationCountry: null,
+          locationLatitude: deviceLatitude,
+          locationLongitude: deviceLongitude,
+          locationSource: 'DEVICE',
           locationAccuracy,
         },
       });

@@ -960,7 +960,7 @@ function LoginFormContent() {
 
         {/* Mensaje de Error */}
         {errorMessage && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-semibold text-center animate-fade-in">
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-semibold text-center animate-fade-in">
             {errorMessage}
           </div>
         )}
@@ -1031,7 +1031,7 @@ function LoginFormContent() {
           </button>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-[#78a9ba]">
             <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-            Al entrar, permite la ubicación para registrar el punto real del dispositivo.
+            Por seguridad, debes permitir la ubicación precisa para iniciar sesión.
           </p>
         </form>
 

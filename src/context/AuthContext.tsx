@@ -19,19 +19,48 @@ interface LoginLocation {
   accuracy: number;
 }
 
-function getLoginLocation(): Promise<LoginLocation | null> {
+interface LoginLocationResult {
+  location: LoginLocation | null;
+  error?: string;
+}
+
+const LOCATION_REQUIRED_ERROR = '📍 Por seguridad, debes activar y permitir la ubicación precisa para usar YZ DIGITAL.';
+
+function getLoginLocation(): Promise<LoginLocationResult> {
   if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    return Promise.resolve(null);
+    return Promise.resolve({
+      location: null,
+      error: `${LOCATION_REQUIRED_ERROR} Este dispositivo o navegador no permite obtenerla.`,
+    });
   }
 
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        accuracy: coords.accuracy,
-      }),
-      () => resolve(null),
+      ({ coords }) => {
+        if (coords.accuracy > 500) {
+          resolve({
+            location: null,
+            error: `${LOCATION_REQUIRED_ERROR} Activa la opción “Ubicación precisa” e inténtalo nuevamente.`,
+          });
+          return;
+        }
+
+        resolve({
+          location: {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            accuracy: coords.accuracy,
+          },
+        });
+      },
+      (error) => {
+        const detail = error.code === error.PERMISSION_DENIED
+          ? 'Pulsa Permitir cuando el navegador solicite acceso a tu ubicación.'
+          : error.code === error.TIMEOUT
+          ? 'No pudimos obtener el GPS a tiempo. Verifica que esté encendido e inténtalo nuevamente.'
+          : 'Enciende el GPS y activa la ubicación precisa antes de volver a intentarlo.';
+        resolve({ location: null, error: `${LOCATION_REQUIRED_ERROR} ${detail}` });
+      },
       {
         enableHighAccuracy: true,
         maximumAge: 0,
@@ -72,11 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (identifier: string, password: string) => {
     setLoading(true);
     try {
-      const location = await getLoginLocation();
+      const locationResult = await getLoginLocation();
+      if (!locationResult.location) {
+        setLoading(false);
+        return { success: false, error: locationResult.error || LOCATION_REQUIRED_ERROR };
+      }
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password, location }),
+        body: JSON.stringify({ identifier, password, location: locationResult.location }),
       });
 
       const data = await res.json();
