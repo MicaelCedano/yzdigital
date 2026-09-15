@@ -933,19 +933,6 @@ function LoginFormContent() {
       <div className="login-tech-scene relative w-screen h-screen overflow-hidden select-none">
         <LoginBackgroundRotator />
 
-        {/* Circuitos de fondo inspirados en la referencia tecnológica */}
-        <svg className="login-circuits" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
-          <path className="login-trace login-trace-cyan" d="M70 -30V210l38 38v170l-38 40v472M155 -20V190l-36 42v255l50 55v358M250 -20V330l-48 52v518M340 -20V165l46 48v124l-42 46v437M450 -20V260l55 60v580M555 -20V120l-38 45v190l50 50v455M665 -20V355l-54 58v487M770 -20V178l-50 52v173l44 48v449M895 -20V292l-52 54v554M1010 -20V145l42 42v178l-48 52v463M1125 -20V325l-54 54v521M1240 -20V220l50 54v626M1350 -20V155l-45 48v697" />
-          <path className="login-trace login-trace-dim" d="M25 -30V340l45 48v512M205 -30V115l45 48v143l-40 42v552M300 -30V245l-42 46v609M405 -30V90l-45 45v274l48 52v439M610 -30V220l-45 50v630M710 -30V80l44 46v224l-42 46v504M830 -30V240l48 52v608M945 -30V102l-40 43v245l48 52v458M1070 -30V260l42 46v594M1190 -30V100l-42 46v300l50 53v401M1300 -30V300l-45 49v551M1400 -30V180l-50 52v638" />
-          <path className="login-trace login-trace-cyan login-trace-flow" d="M70 -30V210l38 38v170l-38 40v472M340 -20V165l46 48v124l-42 46v437M555 -20V120l-38 45v190l50 50v455M770 -20V178l-50 52v173l44 48v449M1010 -20V145l42 42v178l-48 52v463M1240 -20V220l50 54v626" />
-          <g className="login-charge login-charge-one"><circle r="5" fill="currentColor"><animateMotion dur="5.2s" repeatCount="indefinite" path="M70 -30V210l38 38v170l-38 40v472" /></circle></g>
-          <g className="login-charge login-charge-two"><circle r="5" fill="currentColor"><animateMotion dur="6.6s" begin="-2.4s" repeatCount="indefinite" path="M340 -20V165l46 48v124l-42 46v437" /></circle></g>
-          <g className="login-charge login-charge-three"><circle r="4.5" fill="currentColor"><animateMotion dur="5.8s" begin="-1s" repeatCount="indefinite" path="M555 -20V120l-38 45v190l50 50v455" /></circle></g>
-          <g className="login-charge login-charge-two"><circle r="5" fill="currentColor"><animateMotion dur="6.1s" begin="-4s" repeatCount="indefinite" path="M770 -20V178l-50 52v173l44 48v449" /></circle></g>
-          <g className="login-charge login-charge-one"><circle r="5" fill="currentColor"><animateMotion dur="5.5s" begin="-3.5s" repeatCount="indefinite" path="M1010 -20V145l42 42v178l-48 52v463" /></circle></g>
-          <g className="login-charge login-charge-three"><circle r="5" fill="currentColor"><animateMotion dur="6.3s" begin="-1.8s" repeatCount="indefinite" path="M1240 -20V220l50 54v626" /></circle></g>
-        </svg>
-
         {/* La animación anterior queda fuera de la composición visual nueva. */}
         <canvas
           ref={canvasRef}
