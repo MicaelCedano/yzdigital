@@ -7,7 +7,7 @@ import { User } from '@/types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (identifier: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isAdmin: boolean;
@@ -22,6 +22,12 @@ interface LoginLocation {
 interface LoginLocationResult {
   location: LoginLocation | null;
   error?: string;
+}
+
+interface LoginResult {
+  success: boolean;
+  error?: string;
+  locationRequired?: boolean;
 }
 
 const LOCATION_REQUIRED_ERROR = '📍 Por seguridad, debes activar y permitir la ubicación precisa para usar YZ DIGITAL.';
@@ -55,7 +61,7 @@ function getLoginLocation(): Promise<LoginLocationResult> {
       },
       (error) => {
         const detail = error.code === error.PERMISSION_DENIED
-          ? 'Pulsa Permitir cuando el navegador solicite acceso a tu ubicación.'
+          ? 'Pulsa “Volver a pedir ubicación”. Si el permiso quedó bloqueado, abre el candado de la barra del navegador, cambia Ubicación a “Permitir” y vuelve a intentarlo.'
           : error.code === error.TIMEOUT
           ? 'No pudimos obtener el GPS a tiempo. Verifica que esté encendido e inténtalo nuevamente.'
           : 'Enciende el GPS y activa la ubicación precisa antes de volver a intentarlo.';
@@ -104,7 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const locationResult = await getLoginLocation();
       if (!locationResult.location) {
         setLoading(false);
-        return { success: false, error: locationResult.error || LOCATION_REQUIRED_ERROR };
+        return {
+          success: false,
+          error: locationResult.error || LOCATION_REQUIRED_ERROR,
+          locationRequired: true,
+        };
       }
 
       const res = await fetch('/api/auth/login', {

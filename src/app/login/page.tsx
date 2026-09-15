@@ -12,6 +12,7 @@ function LoginFormContent() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [locationRetryAvailable, setLocationRetryAvailable] = useState(false);
 
   // Estados para el Modal de Solicitar Acceso
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
@@ -878,9 +879,9 @@ function LoginFormContent() {
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const attemptLogin = async () => {
     setErrorMessage('');
+    setLocationRetryAvailable(false);
     setLoading(true);
 
     const result = await login(identifier, password);
@@ -890,8 +891,14 @@ function LoginFormContent() {
       router.refresh();
     } else {
       setErrorMessage(result.error || 'Credenciales inválidas');
+      setLocationRetryAvailable(Boolean(result.locationRequired));
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await attemptLogin();
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -961,7 +968,17 @@ function LoginFormContent() {
         {/* Mensaje de Error */}
         {errorMessage && (
           <div role="alert" aria-live="assertive" className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 text-xs font-semibold text-center animate-fade-in">
-            {errorMessage}
+            <p>{errorMessage}</p>
+            {locationRetryAvailable && (
+              <button
+                type="button"
+                onClick={attemptLogin}
+                disabled={loading}
+                className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg border border-rose-200/50 bg-white/10 px-4 py-2 font-black text-white transition-colors hover:bg-white/20 disabled:opacity-60"
+              >
+                {loading ? 'Solicitando ubicación...' : 'Volver a pedir ubicación'}
+              </button>
+            )}
           </div>
         )}
 
