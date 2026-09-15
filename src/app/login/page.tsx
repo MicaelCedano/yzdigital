@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Loader2, MapPin } from 'lucide-react';
+import { LoginBackgroundRotator } from '@/components/LoginBackgroundRotator';
 
 function LoginFormContent() {
   const [identifier, setIdentifier] = useState('');
@@ -930,6 +931,8 @@ function LoginFormContent() {
 
   return (
       <div className="login-tech-scene relative w-screen h-screen overflow-hidden select-none">
+        <LoginBackgroundRotator />
+
         {/* Circuitos de fondo inspirados en la referencia tecnológica */}
         <svg className="login-circuits" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
           <path className="login-trace login-trace-cyan" d="M70 -30V210l38 38v170l-38 40v472M155 -20V190l-36 42v255l50 55v358M250 -20V330l-48 52v518M340 -20V165l46 48v124l-42 46v437M450 -20V260l55 60v580M555 -20V120l-38 45v190l50 50v455M665 -20V355l-54 58v487M770 -20V178l-50 52v173l44 48v449M895 -20V292l-52 54v554M1010 -20V145l42 42v178l-48 52v463M1125 -20V325l-54 54v521M1240 -20V220l50 54v626M1350 -20V155l-45 48v697" />
