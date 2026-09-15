@@ -66,6 +66,8 @@ interface AccessLogItem {
   locationCountry: string | null;
   locationLatitude: string | null;
   locationLongitude: string | null;
+  locationSource: string | null;
+  locationAccuracy: string | null;
   createdAt: string;
 }
 
@@ -90,6 +92,12 @@ const formatAccessLocation = (log: AccessLogItem) => {
   return [log.locationCity, log.locationRegion, country]
     .filter((part, index, parts): part is string => Boolean(part) && parts.indexOf(part) === index)
     .join(', ');
+};
+
+const formatAccuracy = (accuracy: string | null) => {
+  const meters = Number(accuracy);
+  if (!Number.isFinite(meters)) return null;
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${Math.round(meters)} m`;
 };
 
 export default function AdminUsuariosPage() {
@@ -815,6 +823,8 @@ export default function AdminUsuariosPage() {
               <div className="divide-y divide-slate-100">
                 {accessLogs.map((log) => {
                   const location = formatAccessLocation(log);
+                  const isDeviceLocation = log.locationSource === 'DEVICE';
+                  const accuracy = isDeviceLocation ? formatAccuracy(log.locationAccuracy) : null;
                   const mapUrl = log.locationLatitude && log.locationLongitude
                     ? `https://www.google.com/maps?q=${encodeURIComponent(`${log.locationLatitude},${log.locationLongitude}`)}`
                     : null;
@@ -830,13 +840,20 @@ export default function AdminUsuariosPage() {
                             {log.name}{' '}
                             <span className="text-slate-400 font-normal">(@{log.username})</span>
                           </div>
-                          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-sky-700">
+                          <div className={`mt-0.5 flex items-center gap-1 text-[11px] font-semibold ${isDeviceLocation ? 'text-emerald-700' : 'text-amber-700'}`}>
                             <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
-                            {location ? (
+                            {isDeviceLocation ? (
                               <span>
-                                {location}
+                                GPS del dispositivo{accuracy ? ` (precisión ±${accuracy})` : ''}
                                 {mapUrl ? (
-                                  <>{' · '}<a href={mapUrl} target="_blank" rel="noreferrer" className="underline hover:text-sky-900">Ver mapa aproximado</a></>
+                                  <>{' · '}<a href={mapUrl} target="_blank" rel="noreferrer" className="underline hover:text-emerald-900">Ver ubicación real</a></>
+                                ) : null}
+                              </span>
+                            ) : location ? (
+                              <span>
+                                Aproximada por IP: {location}
+                                {mapUrl ? (
+                                  <>{' · '}<a href={mapUrl} target="_blank" rel="noreferrer" className="underline hover:text-amber-900">Ver mapa aproximado</a></>
                                 ) : null}
                               </span>
                             ) : (

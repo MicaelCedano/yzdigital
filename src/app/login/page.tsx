@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 
 function LoginFormContent() {
   const [identifier, setIdentifier] = useState('');
@@ -1029,6 +1029,10 @@ function LoginFormContent() {
               <span>Entrar</span>
             )}
           </button>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-[#78a9ba]">
+            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+            Al entrar, permite la ubicación para registrar el punto real del dispositivo.
+          </p>
         </form>
 
         {/* Enlace para solicitar acceso */}

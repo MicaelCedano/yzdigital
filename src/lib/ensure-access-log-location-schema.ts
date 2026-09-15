@@ -10,7 +10,9 @@ export function ensureAccessLogLocationSchema() {
         ADD COLUMN IF NOT EXISTS "locationRegion" TEXT,
         ADD COLUMN IF NOT EXISTS "locationCountry" TEXT,
         ADD COLUMN IF NOT EXISTS "locationLatitude" TEXT,
-        ADD COLUMN IF NOT EXISTS "locationLongitude" TEXT
+        ADD COLUMN IF NOT EXISTS "locationLongitude" TEXT,
+        ADD COLUMN IF NOT EXISTS "locationSource" TEXT,
+        ADD COLUMN IF NOT EXISTS "locationAccuracy" TEXT
     `.then(() => undefined).catch((error) => {
       schemaReady = null;
       throw error;

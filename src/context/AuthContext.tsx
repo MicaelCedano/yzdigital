@@ -13,6 +13,34 @@ interface AuthContextType {
   isAdmin: boolean;
 }
 
+interface LoginLocation {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
+
+function getLoginLocation(): Promise<LoginLocation | null> {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => resolve({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+      }),
+      () => resolve(null),
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 12000,
+      }
+    );
+  });
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -44,10 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (identifier: string, password: string) => {
     setLoading(true);
     try {
+      const location = await getLoginLocation();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ identifier, password, location }),
       });
 
       const data = await res.json();

@@ -25,9 +25,23 @@ function readCoordinate(headers: Headers, name: string, min: number, max: number
     : null;
 }
 
+function readBodyCoordinate(value: unknown, min: number, max: number) {
+  const coordinate = typeof value === 'number' ? value : Number.NaN;
+  return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
+    ? String(coordinate)
+    : null;
+}
+
+function readLocationAccuracy(value: unknown) {
+  const accuracy = typeof value === 'number' ? value : Number.NaN;
+  return Number.isFinite(accuracy) && accuracy >= 0 && accuracy <= 1_000_000
+    ? String(Math.round(accuracy))
+    : null;
+}
+
 export async function POST(request: Request) {
   try {
-    const { identifier, password } = await request.json();
+    const { identifier, password, location } = await request.json();
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -94,11 +108,22 @@ export async function POST(request: Request) {
                       '127.0.0.1';
     const currentUserAgent = request.headers.get('user-agent') || 'Dispositivo Web';
     const currentDeviceFingerprint = `${currentUserAgent.slice(0, 100)}|${currentIp}`;
-    const locationCity = readLocationHeader(request.headers, 'x-vercel-ip-city');
-    const locationRegion = readLocationHeader(request.headers, 'x-vercel-ip-country-region');
-    const locationCountry = readLocationHeader(request.headers, 'x-vercel-ip-country', 2)?.toUpperCase() || null;
-    const locationLatitude = readCoordinate(request.headers, 'x-vercel-ip-latitude', -90, 90);
-    const locationLongitude = readCoordinate(request.headers, 'x-vercel-ip-longitude', -180, 180);
+    const deviceLatitude = readBodyCoordinate(location?.latitude, -90, 90);
+    const deviceLongitude = readBodyCoordinate(location?.longitude, -180, 180);
+    const hasDeviceLocation = Boolean(deviceLatitude && deviceLongitude);
+    const locationCity = hasDeviceLocation ? null : readLocationHeader(request.headers, 'x-vercel-ip-city');
+    const locationRegion = hasDeviceLocation ? null : readLocationHeader(request.headers, 'x-vercel-ip-country-region');
+    const locationCountry = hasDeviceLocation
+      ? null
+      : readLocationHeader(request.headers, 'x-vercel-ip-country', 2)?.toUpperCase() || null;
+    const locationLatitude = deviceLatitude || readCoordinate(request.headers, 'x-vercel-ip-latitude', -90, 90);
+    const locationLongitude = deviceLongitude || readCoordinate(request.headers, 'x-vercel-ip-longitude', -180, 180);
+    const locationSource = hasDeviceLocation
+      ? 'DEVICE'
+      : locationCity || locationRegion || locationCountry || locationLatitude || locationLongitude
+      ? 'IP'
+      : null;
+    const locationAccuracy = hasDeviceLocation ? readLocationAccuracy(location?.accuracy) : null;
 
     if (user.role !== 'ADMIN') {
       const hasBoundDevice = Boolean(user.lockedDevice);
@@ -160,6 +185,8 @@ export async function POST(request: Request) {
           locationCountry,
           locationLatitude,
           locationLongitude,
+          locationSource,
+          locationAccuracy,
         },
       });
     } catch (e) {
