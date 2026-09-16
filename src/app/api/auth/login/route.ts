@@ -79,14 +79,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // -------------------------------------------------------------
-    // BLOQUEO ANTI-COMPARTIR CUENTA / DISPOSITIVO ÚNICO (24 HORAS)
-    // -------------------------------------------------------------
+    // La ubicación se exige a mayoristas para registrar cada acceso,
+    // pero nunca se usa para bloquear por cambio de red, región o dispositivo.
     const currentIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                       request.headers.get('x-real-ip') ||
                       '127.0.0.1';
     const currentUserAgent = request.headers.get('user-agent') || 'Dispositivo Web';
-    const currentDeviceFingerprint = `${currentUserAgent.slice(0, 100)}|${currentIp}`;
     const deviceLatitude = readBodyCoordinate(location?.latitude, -90, 90);
     const deviceLongitude = readBodyCoordinate(location?.longitude, -180, 180);
     const locationAccuracy = readLocationAccuracy(location?.accuracy);
@@ -107,36 +105,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (user.role !== 'ADMIN') {
-      const hasBoundDevice = Boolean(user.lockedDevice);
-
-      if (hasBoundDevice) {
-        const isSameDevice = user.lockedDevice === currentDeviceFingerprint || user.lockedIp === currentIp;
-
-        if (!isSameDevice) {
-          // Dispositivo / ubicación diferente: verificar si pasaron 24 horas desde la última conexión
-          const referenceTime = user.lastActiveAt
-            ? new Date(user.lastActiveAt)
-            : user.lastLoginAt
-            ? new Date(user.lastLoginAt)
-            : new Date(user.createdAt);
-          const timeElapsedMs = Date.now() - referenceTime.getTime();
-          const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-
-          if (timeElapsedMs < twentyFourHoursMs) {
-            const hoursLeft = Math.ceil((twentyFourHoursMs - timeElapsedMs) / (60 * 60 * 1000));
-            return NextResponse.json(
-              {
-                error: `🔒 Acceso restringido: Esta cuenta ya está vinculada a otro dispositivo/ubicación. Por políticas de seguridad mayorista, no se puede compartir ni abrir en otro lugar hasta que pasen 24 horas (faltan aprox. ${hoursLeft}h) o solicites al Administrador de YZ DIGITAL que desvincule tu dispositivo anterior.`
-              },
-              { status: 403 }
-            );
-          }
-        }
-      }
-    }
-
-    // Actualizar última conexión, vinculación de dispositivo y contador de accesos
+    // Actualizar última conexión y contador de accesos.
     const now = new Date();
     try {
       await ensureAccessLogLocationSchema();
@@ -146,13 +115,6 @@ export async function POST(request: Request) {
         data: {
           lastLoginAt: now,
           lastActiveAt: now,
-          ...(user.role !== 'ADMIN'
-            ? {
-                lockedDevice: currentDeviceFingerprint,
-                lockedIp: currentIp,
-                lastDeviceChangeAt: now,
-              }
-            : {}),
           loginCount: { increment: 1 },
         },
       });

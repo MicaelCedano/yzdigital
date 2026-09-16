@@ -21,9 +21,6 @@ import {
   Calendar,
   Eye,
   AlertCircle,
-  Smartphone,
-  Lock,
-  Unlock,
   UserPlus,
   X,
   Save,
@@ -46,9 +43,6 @@ interface UserData {
   lastLoginAt: string | null;
   lastActiveAt: string | null;
   loginCount: number;
-  lockedDevice: string | null;
-  lockedIp: string | null;
-  lastDeviceChangeAt: string | null;
   createdAt: string;
 }
 
@@ -216,28 +210,6 @@ export default function AdminUsuariosPage() {
         fetchUsers(true);
       } else {
         toastError('Error', data.error || 'No se pudo actualizar el estado.');
-      }
-    } catch (err) {
-      toastError('Error de red', 'Intenta nuevamente.');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  // Resetear y desvincular dispositivo bloqueado (24h cooldown reset)
-  const handleResetDevice = async (userId: string, userName: string) => {
-    setUpdatingId(userId);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/reset-device`, {
-        method: 'POST',
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        success('Dispositivo Desvinculado', `Se ha reseteado el bloqueo de 24h para ${userName}. Ya puede entrar desde otro dispositivo de inmediato.`);
-        fetchUsers(true);
-      } else {
-        toastError('Error', data.error || 'No se pudo desvincular el dispositivo.');
       }
     } catch (err) {
       toastError('Error de red', 'Intenta nuevamente.');
@@ -669,21 +641,6 @@ export default function AdminUsuariosPage() {
                           <span className="font-bold text-sky-700">{u.loginCount} veces</span>
                         </div>
 
-                        {/* Estado de Dispositivo Vinculado (Bloqueo 24H) */}
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
-                          <span className="text-slate-400 font-semibold flex items-center gap-1">
-                            <Smartphone className="w-3 h-3 text-slate-400" /> Dispositivo:
-                          </span>
-                          {u.lockedDevice ? (
-                            <span className="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 text-[10px]">
-                              🔒 Vinculado a su red
-                            </span>
-                          ) : (
-                            <span className="font-medium text-slate-400 text-[10px]">
-                              🔓 Libre (1er inicio)
-                            </span>
-                          )}
-                        </div>
                       </div>
 
                       {/* Botones de Acción */}
@@ -727,19 +684,6 @@ export default function AdminUsuariosPage() {
                               >
                                 Suspender
                               </button>
-
-                              {/* Botón Resetear Dispositivo 24H */}
-                              {u.lockedDevice && (
-                                <button
-                                  onClick={() => handleResetDevice(u.id, u.name)}
-                                  disabled={updatingId === u.id}
-                                  className="py-1.5 px-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold transition-all flex items-center gap-1"
-                                  title="Permite que el cliente entre de inmediato desde otro teléfono o red sin esperar 24 horas"
-                                >
-                                  <Unlock className="w-3 h-3 text-amber-600" />
-                                  <span>Reset 24h</span>
-                                </button>
-                              )}
                             </div>
 
                             {u.phone && (
