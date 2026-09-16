@@ -107,26 +107,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (identifier: string, password: string) => {
     setLoading(true);
     try {
-      const locationResult = await getLoginLocation();
-      if (!locationResult.location) {
+      const requestLogin = (location?: LoginLocation) => fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password, ...(location ? { location } : {}) }),
+      });
+
+      // El servidor valida primero las credenciales y el rol. Solo las cuentas
+      // mayoristas reciben el reto de ubicación; los administradores no necesitan GPS.
+      let res = await requestLogin();
+      let data = await res.json();
+
+      if (res.status === 428 && data.locationRequired) {
+        const locationResult = await getLoginLocation();
+        if (!locationResult.location) {
+          setLoading(false);
+          return {
+            success: false,
+            error: locationResult.error || LOCATION_REQUIRED_ERROR,
+            locationRequired: true,
+          };
+        }
+
+        res = await requestLogin(locationResult.location);
+        data = await res.json();
+      }
+
+      if (!res.ok) {
         setLoading(false);
         return {
           success: false,
-          error: locationResult.error || LOCATION_REQUIRED_ERROR,
-          locationRequired: true,
+          error: data.error || 'Error al iniciar sesión',
+          locationRequired: Boolean(data.locationRequired),
         };
-      }
-
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password, location: locationResult.location }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setLoading(false);
-        return { success: false, error: data.error || 'Error al iniciar sesión' };
       }
 
       setUser(data.user);

@@ -1038,7 +1038,7 @@ function LoginFormContent() {
           </button>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-[#78a9ba]">
             <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-            Por seguridad, debes permitir la ubicación precisa para iniciar sesión.
+            Las cuentas mayoristas requieren ubicación precisa. Los administradores no.
           </p>
         </form>
 

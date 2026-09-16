@@ -97,10 +97,11 @@ export async function POST(request: Request) {
       Number(locationAccuracy) <= 500
     );
 
-    if (!hasPreciseDeviceLocation) {
+    if (user.role !== 'ADMIN' && !hasPreciseDeviceLocation) {
       return NextResponse.json(
         {
           error: '📍 Por seguridad, debes activar y permitir la ubicación precisa para usar YZ DIGITAL. Verifica el permiso de ubicación e inténtalo nuevamente.',
+          locationRequired: true,
         },
         { status: 428 }
       );
@@ -145,9 +146,13 @@ export async function POST(request: Request) {
         data: {
           lastLoginAt: now,
           lastActiveAt: now,
-          lockedDevice: currentDeviceFingerprint,
-          lockedIp: currentIp,
-          lastDeviceChangeAt: now,
+          ...(user.role !== 'ADMIN'
+            ? {
+                lockedDevice: currentDeviceFingerprint,
+                lockedIp: currentIp,
+                lastDeviceChangeAt: now,
+              }
+            : {}),
           loginCount: { increment: 1 },
         },
       });
@@ -166,7 +171,7 @@ export async function POST(request: Request) {
           locationCountry: null,
           locationLatitude: deviceLatitude,
           locationLongitude: deviceLongitude,
-          locationSource: 'DEVICE',
+          locationSource: hasPreciseDeviceLocation ? 'DEVICE' : null,
           locationAccuracy,
         },
       });
