@@ -38,7 +38,19 @@ export async function POST(request: Request) {
           { username: identifier.trim() },
         ],
       },
-      include: {
+      // Select only the columns needed before ensuring the optional location
+      // policy column exists in databases that have not seen this change yet.
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        passwordHash: true,
+        name: true,
+        role: true,
+        status: true,
+        isActive: true,
+        companyName: true,
+        priceListId: true,
         priceList: true,
       },
     });
@@ -49,10 +61,6 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
-
-    const [locationPolicy] = await prisma.$queryRaw<Array<{ locationRequired: boolean }>>`
-      SELECT "locationRequired" FROM "User" WHERE id = ${user.id} LIMIT 1
-    `;
 
     if (!user.isActive) {
       return NextResponse.json(
@@ -85,6 +93,9 @@ export async function POST(request: Request) {
     }
 
     await ensureUserLocationPolicySchema();
+    const [locationPolicy] = await prisma.$queryRaw<Array<{ locationRequired: boolean }>>`
+      SELECT "locationRequired" FROM "User" WHERE id = ${user.id} LIMIT 1
+    `;
 
     // Solo se solicita ubicación a las cuentas que administración haya marcado.
     const currentIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
