@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, createSessionToken, COOKIE_NAME } from '@/lib/auth';
 import { ensureAccessLogLocationSchema } from '@/lib/ensure-access-log-location-schema';
+import { ensureUserLocationPolicySchema } from '@/lib/ensure-user-location-policy-schema';
 
 function readBodyCoordinate(value: unknown, min: number, max: number) {
   const coordinate = typeof value === 'number' ? value : Number.NaN;
@@ -49,6 +50,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const [locationPolicy] = await prisma.$queryRaw<Array<{ locationRequired: boolean }>>`
+      SELECT "locationRequired" FROM "User" WHERE id = ${user.id} LIMIT 1
+    `;
+
     if (!user.isActive) {
       return NextResponse.json(
         { error: 'Esta cuenta ha sido desactivada. Comuníquese con administración.' },
@@ -79,8 +84,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // La ubicación se exige a mayoristas para registrar cada acceso,
-    // pero nunca se usa para bloquear por cambio de red, región o dispositivo.
+    await ensureUserLocationPolicySchema();
+
+    // Solo se solicita ubicación a las cuentas que administración haya marcado.
     const currentIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                       request.headers.get('x-real-ip') ||
                       '127.0.0.1';
@@ -95,7 +101,7 @@ export async function POST(request: Request) {
       Number(locationAccuracy) <= 500
     );
 
-    if (user.role !== 'ADMIN' && !hasPreciseDeviceLocation) {
+    if (user.role !== 'ADMIN' && locationPolicy?.locationRequired && !hasPreciseDeviceLocation) {
       return NextResponse.json(
         {
           error: '📍 Por seguridad, debes activar y permitir la ubicación precisa para usar YZ DIGITAL. Verifica el permiso de ubicación e inténtalo nuevamente.',

@@ -39,6 +39,7 @@ interface UserData {
   shippingAddress: string | null;
   phone: string | null;
   isActive: boolean;
+  locationRequired: boolean;
   isOnline: boolean;
   lastLoginAt: string | null;
   lastActiveAt: string | null;
@@ -213,6 +214,28 @@ export default function AdminUsuariosPage() {
       }
     } catch (err) {
       toastError('Error de red', 'Intenta nuevamente.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleToggleLocation = async (target: UserData) => {
+    const locationRequired = !target.locationRequired;
+    setUpdatingId(target.id);
+    try {
+      const res = await fetch(`/api/admin/users/${target.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationRequired }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el requisito.');
+      success('Requisito actualizado', locationRequired
+        ? `Se pedirá ubicación a ${target.name} al iniciar sesión.`
+        : `Ya no se pedirá ubicación a ${target.name}.`);
+      fetchUsers(true);
+    } catch (err) {
+      toastError('Error', err instanceof Error ? err.message : 'No se pudo actualizar el requisito.');
     } finally {
       setUpdatingId(null);
     }
@@ -645,6 +668,17 @@ export default function AdminUsuariosPage() {
 
                       {/* Botones de Acción */}
                       <div className="space-y-2 pt-1">
+                        {u.role !== 'ADMIN' && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLocation(u)}
+                            disabled={updatingId === u.id}
+                            className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${u.locationRequired ? 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}
+                          >
+                            <MapPin className="w-3.5 h-3.5" />
+                            {u.locationRequired ? 'Ubicación obligatoria · Desactivar' : 'Pedir ubicación a esta persona'}
+                          </button>
+                        )}
                         {isPending && (
                           <div className="grid grid-cols-2 gap-2">
                             <button

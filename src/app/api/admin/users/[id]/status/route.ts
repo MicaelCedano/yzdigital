@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { verifySessionToken, COOKIE_NAME } from '@/lib/auth';
+import { ensureUserLocationPolicySchema } from '@/lib/ensure-user-location-policy-schema';
 
 export async function PATCH(
   request: Request,
@@ -20,7 +21,16 @@ export async function PATCH(
 
     const { id } = params;
     const body = await request.json();
-    const { status, isActive } = body;
+    const { status, isActive, locationRequired } = body;
+
+    if (typeof locationRequired === 'boolean') {
+      await ensureUserLocationPolicySchema();
+      const target = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+      if (!target) return NextResponse.json({ error: 'La cuenta no existe.' }, { status: 404 });
+      if (target.role === 'ADMIN' && locationRequired) {
+        return NextResponse.json({ error: 'La ubicación no se puede exigir a cuentas administradoras.' }, { status: 400 });
+      }
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id },
@@ -29,6 +39,15 @@ export async function PATCH(
         ...(typeof isActive === 'boolean' ? { isActive } : {}),
       },
     });
+
+    if (typeof locationRequired === 'boolean') {
+      await prisma.$executeRaw`
+        UPDATE "User" SET "locationRequired" = ${locationRequired} WHERE id = ${id}
+      `;
+    }
+    const [locationPolicy] = await prisma.$queryRaw<Array<{ locationRequired: boolean }>>`
+      SELECT "locationRequired" FROM "User" WHERE id = ${id} LIMIT 1
+    `;
 
     return NextResponse.json({
       success: true,
@@ -39,6 +58,7 @@ export async function PATCH(
         username: updatedUser.username,
         status: updatedUser.status,
         isActive: updatedUser.isActive,
+        locationRequired: locationPolicy?.locationRequired ?? false,
       },
     });
   } catch (error) {

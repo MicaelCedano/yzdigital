@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword, verifySessionToken, COOKIE_NAME } from '@/lib/auth';
 import { hasUsernameWhitespace, normalizeUsername } from '@/lib/username';
 import { ensureAccessLogLocationSchema } from '@/lib/ensure-access-log-location-schema';
+import { ensureUserLocationPolicySchema } from '@/lib/ensure-user-location-policy-schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,6 +97,7 @@ export async function GET(request: Request) {
     }
 
     await ensureAccessLogLocationSchema();
+    await ensureUserLocationPolicySchema();
 
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get('status'); // 'PENDING' | 'APPROVED' | 'REJECTED' | 'ONLINE'
@@ -146,10 +148,16 @@ export async function GET(request: Request) {
     // Calcular usuarios en línea (activos en los últimos 5 minutos)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
+    const locationPolicies = await prisma.$queryRaw<Array<{ id: string; locationRequired: boolean }>>`
+      SELECT id, "locationRequired" FROM "User"
+    `;
+    const locationRequiredByUserId = new Map(locationPolicies.map((policy) => [policy.id, policy.locationRequired]));
+
     const usersWithOnlineStatus = allUsers.map((u) => {
       const isOnline = u.lastActiveAt ? new Date(u.lastActiveAt) > fiveMinutesAgo : false;
       return {
         ...u,
+        locationRequired: locationRequiredByUserId.get(u.id) ?? false,
         isOnline,
       };
     });
